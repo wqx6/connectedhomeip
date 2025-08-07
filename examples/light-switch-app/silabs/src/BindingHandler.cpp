@@ -19,7 +19,8 @@
 
 #include "AppConfig.h"
 #include "app/CommandSender.h"
-#include "app/clusters/bindings/BindingManager.h"
+#include "app/clusters/binding-server/BindingManager.h"
+#include "app/clusters/binding-server/BindingTable.h"
 #include "app/server/Server.h"
 #include "controller/InvokeInteraction.h"
 #include "platform/CHIPDeviceLayer.h"
@@ -29,10 +30,12 @@
 using namespace chip;
 using namespace chip::app;
 using namespace chip::app::Clusters::LevelControl;
+using chip::app::Clusters::BindingTableEntry;
+using chip::app::Clusters::BindingManager;
 
 namespace {
 
-void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTableEntry & binding,
+void ProcessOnOffUnicastBindingCommand(CommandId commandId, const BindingTableEntry & binding,
                                        Messaging::ExchangeManager * exchangeMgr, const SessionHandle & sessionHandle)
 {
     auto onSuccess = [](const ConcreteCommandPath & commandPath, const StatusIB & status, const auto & dataResponse) {
@@ -42,51 +45,53 @@ void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTa
     auto onFailure = [](CHIP_ERROR error) {
         ChipLogError(NotSpecified, "OnOff command failed: %" CHIP_ERROR_FORMAT, error.Format());
     };
+    VerifyOrDie(binding.remoteEndpointId.has_value());
 
     switch (commandId)
     {
     case Clusters::OnOff::Commands::Toggle::Id:
         Clusters::OnOff::Commands::Toggle::Type toggleCommand;
-        Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remote, toggleCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remoteEndpointId.value(), toggleCommand, onSuccess, onFailure);
         break;
 
     case Clusters::OnOff::Commands::On::Id:
         Clusters::OnOff::Commands::On::Type onCommand;
-        Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remote, onCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remoteEndpointId.value(), onCommand, onSuccess, onFailure);
         break;
 
     case Clusters::OnOff::Commands::Off::Id:
         Clusters::OnOff::Commands::Off::Type offCommand;
-        Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remote, offCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remoteEndpointId.value(), offCommand, onSuccess, onFailure);
         break;
     }
 }
 
-void ProcessOnOffGroupBindingCommand(CommandId commandId, const EmberBindingTableEntry & binding)
+void ProcessOnOffGroupBindingCommand(CommandId commandId, const BindingTableEntry & binding)
 {
+    VerifyOrDie(binding.groupId.has_value());
     Messaging::ExchangeManager & exchangeMgr = Server::GetInstance().GetExchangeManager();
 
     switch (commandId)
     {
     case Clusters::OnOff::Commands::Toggle::Id:
         Clusters::OnOff::Commands::Toggle::Type toggleCommand;
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, toggleCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), toggleCommand);
         break;
 
     case Clusters::OnOff::Commands::On::Id:
         Clusters::OnOff::Commands::On::Type onCommand;
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, onCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), onCommand);
 
         break;
 
     case Clusters::OnOff::Commands::Off::Id:
         Clusters::OnOff::Commands::Off::Type offCommand;
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, offCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), offCommand);
         break;
     }
 }
 
-void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const EmberBindingTableEntry & binding,
+void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const BindingTableEntry & binding,
                                               OperationalDeviceProxy * peer_device)
 {
     auto onSuccess = [](const ConcreteCommandPath & commandPath, const StatusIB & status, const auto & dataResponse) {
@@ -98,6 +103,7 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
     };
 
     VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
+    VerifyOrDie(binding.remoteEndpointId.has_value());
 
     switch (data->commandId)
     {
@@ -110,7 +116,7 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
             moveToLevelCommand.optionsMask     = moveToLevel->optionsMask;
             moveToLevelCommand.optionsOverride = moveToLevel->optionsOverride;
             Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, moveToLevelCommand, onSuccess, onFailure);
+                                             binding.remoteEndpointId.value(), moveToLevelCommand, onSuccess, onFailure);
         }
         break;
     }
@@ -124,7 +130,7 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
             moveCommand.optionsMask     = move->optionsMask;
             moveCommand.optionsOverride = move->optionsOverride;
             Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, moveCommand, onSuccess, onFailure);
+                                             binding.remoteEndpointId.value(), moveCommand, onSuccess, onFailure);
         }
         break;
     }
@@ -139,7 +145,7 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
             stepCommand.optionsMask     = step->optionsMask;
             stepCommand.optionsOverride = step->optionsOverride;
             Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, stepCommand, onSuccess, onFailure);
+                                             binding.remoteEndpointId.value(), stepCommand, onSuccess, onFailure);
         }
         break;
     }
@@ -151,7 +157,7 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
             stopCommand.optionsMask     = stop->optionsMask;
             stopCommand.optionsOverride = stop->optionsOverride;
             Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, stopCommand, onSuccess, onFailure);
+                                             binding.remoteEndpointId.value(), stopCommand, onSuccess, onFailure);
         }
         break;
     }
@@ -165,7 +171,7 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
             moveToLevelWithOnOffCommand.optionsMask     = moveToLevel->optionsMask;
             moveToLevelWithOnOffCommand.optionsOverride = moveToLevel->optionsOverride;
             Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, moveToLevelWithOnOffCommand, onSuccess, onFailure);
+                                             binding.remoteEndpointId.value(), moveToLevelWithOnOffCommand, onSuccess, onFailure);
         }
         break;
     }
@@ -179,7 +185,7 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
             moveWithOnOffCommand.optionsMask     = move->optionsMask;
             moveWithOnOffCommand.optionsOverride = move->optionsOverride;
             Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, moveWithOnOffCommand, onSuccess, onFailure);
+                                             binding.remoteEndpointId.value(), moveWithOnOffCommand, onSuccess, onFailure);
         }
         break;
     }
@@ -194,7 +200,7 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
             stepWithOnOffCommand.optionsMask     = step->optionsMask;
             stepWithOnOffCommand.optionsOverride = step->optionsOverride;
             Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, stepWithOnOffCommand, onSuccess, onFailure);
+                                             binding.remoteEndpointId.value(), stepWithOnOffCommand, onSuccess, onFailure);
         }
         break;
     }
@@ -206,7 +212,7 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
             stopWithOnOffCommand.optionsMask     = stop->optionsMask;
             stopWithOnOffCommand.optionsOverride = stop->optionsOverride;
             Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, stopWithOnOffCommand, onSuccess, onFailure);
+                                             binding.remoteEndpointId.value(), stopWithOnOffCommand, onSuccess, onFailure);
         }
         break;
     }
@@ -215,8 +221,9 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
     }
 }
 
-void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const EmberBindingTableEntry & binding)
+void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const BindingTableEntry & binding)
 {
+    VerifyOrDie(binding.groupId.has_value());
     Messaging::ExchangeManager & exchangeMgr = Server::GetInstance().GetExchangeManager();
 
     switch (data->commandId)
@@ -229,7 +236,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
             moveToLevelCommand.transitionTime  = moveToLevel->transitionTime;
             moveToLevelCommand.optionsMask     = moveToLevel->optionsMask;
             moveToLevelCommand.optionsOverride = moveToLevel->optionsOverride;
-            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveToLevelCommand);
+            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToLevelCommand);
         }
         break;
     }
@@ -242,7 +249,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
             moveCommand.rate            = move->rate;
             moveCommand.optionsMask     = move->optionsMask;
             moveCommand.optionsOverride = move->optionsOverride;
-            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveCommand);
+            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveCommand);
         }
         break;
     }
@@ -256,7 +263,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
             stepCommand.transitionTime  = step->transitionTime;
             stepCommand.optionsMask     = step->optionsMask;
             stepCommand.optionsOverride = step->optionsOverride;
-            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stepCommand);
+            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), stepCommand);
         }
         break;
     }
@@ -267,7 +274,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
         {
             stopCommand.optionsMask     = stop->optionsMask;
             stopCommand.optionsOverride = stop->optionsOverride;
-            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stopCommand);
+            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), stopCommand);
         }
         break;
     }
@@ -280,7 +287,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
             moveToLevelWithOnOffCommand.transitionTime  = moveToLevel->transitionTime;
             moveToLevelWithOnOffCommand.optionsMask     = moveToLevel->optionsMask;
             moveToLevelWithOnOffCommand.optionsOverride = moveToLevel->optionsOverride;
-            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveToLevelWithOnOffCommand);
+            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToLevelWithOnOffCommand);
         }
         break;
     }
@@ -293,7 +300,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
             moveWithOnOffCommand.rate            = move->rate;
             moveWithOnOffCommand.optionsMask     = move->optionsMask;
             moveWithOnOffCommand.optionsOverride = move->optionsOverride;
-            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveWithOnOffCommand);
+            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveWithOnOffCommand);
         }
         break;
     }
@@ -307,7 +314,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
             stepWithOnOffCommand.transitionTime  = step->transitionTime;
             stepWithOnOffCommand.optionsMask     = step->optionsMask;
             stepWithOnOffCommand.optionsOverride = step->optionsOverride;
-            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stepWithOnOffCommand);
+            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), stepWithOnOffCommand);
         }
         break;
     }
@@ -318,7 +325,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
         {
             stopWithOnOffCommand.optionsMask     = stop->optionsMask;
             stopWithOnOffCommand.optionsOverride = stop->optionsOverride;
-            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stopWithOnOffCommand);
+            Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), stopWithOnOffCommand);
         }
         break;
     }
@@ -327,7 +334,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
     }
 }
 
-void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, OperationalDeviceProxy * peer_device, void * context)
+void LightSwitchChangedHandler(const BindingTableEntry & binding, OperationalDeviceProxy * peer_device, void * context)
 {
     VerifyOrReturn(context != nullptr, ChipLogError(NotSpecified, "OnDeviceConnectedFn: context is null"));
     BindingCommandData * data = static_cast<BindingCommandData *>(context);
@@ -369,10 +376,10 @@ void LightSwitchContextReleaseHandler(void * context)
 void InitBindingHandlerInternal(intptr_t arg)
 {
     auto & server = chip::Server::GetInstance();
-    chip::BindingManager::GetInstance().Init(
+    BindingManager::GetInstance().Init(
         { &server.GetFabricTable(), server.GetCASESessionManager(), &server.GetPersistentStorage() });
-    chip::BindingManager::GetInstance().RegisterBoundDeviceChangedHandler(LightSwitchChangedHandler);
-    chip::BindingManager::GetInstance().RegisterBoundDeviceContextReleaseHandler(LightSwitchContextReleaseHandler);
+    BindingManager::GetInstance().RegisterBoundDeviceChangedHandler(LightSwitchChangedHandler);
+    BindingManager::GetInstance().RegisterBoundDeviceContextReleaseHandler(LightSwitchContextReleaseHandler);
 }
 
 } // namespace
@@ -395,7 +402,7 @@ void BindingWorkerFunction(intptr_t context)
 {
     VerifyOrReturn(context != 0, ChipLogError(NotSpecified, "BindingWorkerFunction - Invalid work data"));
 
-    EmberBindingTableEntry * entry = reinterpret_cast<EmberBindingTableEntry *>(context);
+    BindingTableEntry * entry = reinterpret_cast<BindingTableEntry *>(context);
     AddBindingEntry(*entry);
 
     Platform::Delete(entry);

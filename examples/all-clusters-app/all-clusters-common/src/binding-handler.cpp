@@ -20,7 +20,7 @@
 #include <app-common/zap-generated/ids/Clusters.h>
 #include <app-common/zap-generated/ids/Commands.h>
 #include <app/CommandSender.h>
-#include <app/clusters/bindings/BindingManager.h>
+#include <app/clusters/binding-server/BindingManager.h>
 #include <app/server/Server.h>
 #include <controller/InvokeInteraction.h>
 #include <lib/core/CHIPError.h>
@@ -34,6 +34,9 @@ using chip::Shell::shell_command_t;
 using chip::Shell::streamer_get;
 using chip::Shell::streamer_printf;
 #endif // defined(ENABLE_CHIP_SHELL)
+
+using chip::app::Clusters::BindingManager;
+using chip::app::Clusters::BindingTableEntry;
 
 static bool sSwitchOnOffState = false;
 #if defined(ENABLE_CHIP_SHELL)
@@ -67,19 +70,19 @@ static void RegisterSwitchCommands()
 }
 #endif // defined(ENABLE_CHIP_SHELL)
 
-static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, chip::OperationalDeviceProxy * peer_device,
+static void BoundDeviceChangedHandler(const BindingTableEntry & binding, chip::OperationalDeviceProxy * peer_device,
                                       void * context)
 {
     using namespace chip;
     using namespace chip::app;
 
-    if (binding.type == MATTER_MULTICAST_BINDING)
+    if (binding.groupId.has_value())
     {
         ChipLogError(NotSpecified, "Group binding is not supported now");
         return;
     }
 
-    if (binding.type == MATTER_UNICAST_BINDING && binding.local == 1 &&
+    if (binding.nodeId.has_value() && binding.remoteEndpointId.has_value() && binding.localEndpointId == 1 &&
         binding.clusterId.value_or(Clusters::OnOff::Id) == Clusters::OnOff::Id)
     {
         auto onSuccess = [](const ConcreteCommandPath & commandPath, const StatusIB & status, const auto & dataResponse) {
@@ -94,13 +97,13 @@ static void BoundDeviceChangedHandler(const EmberBindingTableEntry & binding, ch
         {
             Clusters::OnOff::Commands::On::Type onCommand;
             Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, onCommand, onSuccess, onFailure);
+                                             binding.remoteEndpointId.value(), onCommand, onSuccess, onFailure);
         }
         else
         {
             Clusters::OnOff::Commands::Off::Type offCommand;
             Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
-                                             binding.remote, offCommand, onSuccess, onFailure);
+                                             binding.remoteEndpointId.value(), offCommand, onSuccess, onFailure);
         }
     }
 }
@@ -113,10 +116,10 @@ static void BoundDeviceContextReleaseHandler(void * context)
 static void InitBindingHandlerInternal(intptr_t arg)
 {
     auto & server = chip::Server::GetInstance();
-    chip::BindingManager::GetInstance().Init(
+    BindingManager::GetInstance().Init(
         { &server.GetFabricTable(), server.GetCASESessionManager(), &server.GetPersistentStorage() });
-    chip::BindingManager::GetInstance().RegisterBoundDeviceChangedHandler(BoundDeviceChangedHandler);
-    chip::BindingManager::GetInstance().RegisterBoundDeviceContextReleaseHandler(BoundDeviceContextReleaseHandler);
+    BindingManager::GetInstance().RegisterBoundDeviceChangedHandler(BoundDeviceChangedHandler);
+    BindingManager::GetInstance().RegisterBoundDeviceContextReleaseHandler(BoundDeviceContextReleaseHandler);
 }
 
 CHIP_ERROR InitBindingHandlers()

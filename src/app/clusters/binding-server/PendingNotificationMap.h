@@ -15,12 +15,15 @@
  *    limitations under the License.
  */
 
-#include <app/util/binding-table.h>
-#include <app/util/config.h>
+#include <app/clusters/binding-server/BindingTable.h>
 #include <credentials/FabricTable.h>
 #include <lib/core/DataModelTypes.h>
+#include <lib/support/Pool.h>
+#include <lib/support/Span.h>
 
 namespace chip {
+namespace app {
+namespace Clusters {
 
 /**
  * Application callback function when a context used in PendingNotificationEntry will not be needed and should be
@@ -60,26 +63,44 @@ private:
 struct PendingNotificationEntry
 {
 public:
-    uint8_t mBindingEntryId;
-    PendingNotificationContext * mContext;
+    FabricIndex mFabricIndex              = kUndefinedFabricIndex;
+    uint16_t mBindingEntryIndex           = UINT16_MAX;
+    PendingNotificationContext * mContext = nullptr;
+    PendingNotificationEntry()            = default;
+    PendingNotificationEntry(FabricIndex fabricIndex, uint8_t bindingEntryIndex, PendingNotificationContext * context) :
+        mFabricIndex(fabricIndex), mBindingEntryIndex(bindingEntryIndex), mContext(context)
+    {
+        if (mContext)
+        {
+            mContext->IncrementConsumersNumber();
+        }
+    }
+
+    ~PendingNotificationEntry()
+    {
+        if (mContext)
+        {
+            mContext->DecrementConsumersNumber();
+        }
+    }
 };
 
 // The pool for all the pending comands.
 class PendingNotificationMap
 {
 public:
-    static constexpr uint8_t kMaxPendingNotifications = MATTER_BINDING_TABLE_SIZE;
+    static constexpr size_t kMaxPendingNotifications = BindingTable::kMaxBindingEntriesPerFabric * CHIP_CONFIG_MAX_FABRICS;
 
     friend class Iterator;
 
     class Iterator
     {
     public:
-        Iterator(PendingNotificationMap * map, int16_t index) : mMap(map), mIndex(index) {}
+        Iterator(PendingNotificationMap * map, size_t index) : mMap(map), mIndex(index) {}
 
         PendingNotificationEntry operator*()
         {
-            return PendingNotificationEntry{ mMap->mPendingBindingEntries[mIndex], mMap->mPendingContexts[mIndex] };
+            return mMap->mEntries[mIndex];
         }
 
         Iterator operator++()
@@ -94,22 +115,23 @@ public:
 
     private:
         PendingNotificationMap * mMap;
-        int16_t mIndex;
+        size_t mIndex;
     };
 
     Iterator begin() { return Iterator(this, 0); }
 
-    Iterator end() { return Iterator(this, mNumEntries); }
+    Iterator end() { return Iterator(this, mEntryCount); };
+    PendingNotificationMap(BindingTable & bindingTable) : mEntryCount(0), mBindingTable(bindingTable) {}
 
     CHIP_ERROR FindLRUConnectPeer(ScopedNodeId & nodeId);
 
-    CHIP_ERROR AddPendingNotification(uint8_t bindingEntryId, PendingNotificationContext * context);
+    CHIP_ERROR AddPendingNotification(FabricIndex fabricIndex, uint16_t bindingEntryIndex, PendingNotificationContext * context);
 
-    void RemoveEntry(uint8_t bindingEntryId);
+    void RemoveEntry(FabricIndex fabricIndex, uint16_t bindingEntryIndex);
 
     void RemoveAllEntriesForNode(const ScopedNodeId & nodeId);
 
-    void RemoveAllEntriesForFabric(FabricIndex fabric);
+    void RemoveAllEntriesForFabric(FabricIndex fabricIndex);
 
     void RegisterPendingNotificationContextReleaseHandler(PendingNotificationContextReleaseHandler handler)
     {
@@ -122,11 +144,11 @@ public:
     };
 
 private:
-    uint8_t mPendingBindingEntries[kMaxPendingNotifications];
-    PendingNotificationContext * mPendingContexts[kMaxPendingNotifications];
-    PendingNotificationContextReleaseHandler mPendingNotificationContextReleaseHandler;
-
-    uint8_t mNumEntries = 0;
+    PendingNotificationContextReleaseHandler mPendingNotificationContextReleaseHandler = nullptr;
+    PendingNotificationEntry mEntries[kMaxPendingNotifications];
+    size_t mEntryCount;
+    BindingTable & mBindingTable;
 };
-
+} // namespace Clusters
+} // namespace app
 } // namespace chip

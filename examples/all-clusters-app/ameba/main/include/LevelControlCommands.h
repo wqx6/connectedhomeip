@@ -18,7 +18,7 @@
 
 #include "controller/InvokeInteraction.h"
 #include "controller/ReadInteraction.h"
-#include <app/clusters/bindings/bindings.h>
+#include <app/clusters/binding-server/BindingTable.h>
 
 #include <type_traits>
 
@@ -29,6 +29,7 @@
 
 using namespace chip;
 using namespace chip::app;
+using chip::app::Clusters::BindingTableEntry;
 using chip::app::Clusters::LevelControl::MoveModeEnum;
 using chip::app::Clusters::LevelControl::OptionsBitmap;
 using chip::app::Clusters::LevelControl::StepModeEnum;
@@ -54,7 +55,7 @@ T from_underlying(std::underlying_type_t<T> value)
 
 } // namespace
 
-void ProcessLevelControlUnicastBindingRead(BindingCommandData * data, const EmberBindingTableEntry & binding,
+void ProcessLevelControlUnicastBindingRead(BindingCommandData * data, const BindingTableEntry & binding,
                                            OperationalDeviceProxy * peer_device)
 {
     auto onSuccess = [](const ConcreteDataAttributePath & attributePath, const auto & dataResponse) {
@@ -66,87 +67,103 @@ void ProcessLevelControlUnicastBindingRead(BindingCommandData * data, const Embe
     };
 
     VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
+    VerifyOrDie(binding.remoteEndpointId.has_value());
 
     switch (data->attributeId)
     {
     case Clusters::LevelControl::Attributes::AttributeList::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::AttributeList::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::CurrentLevel::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::CurrentLevel::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::RemainingTime::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::RemainingTime::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::MinLevel::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::MinLevel::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::MaxLevel::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::MaxLevel::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::CurrentFrequency::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::CurrentFrequency::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::MinFrequency::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::MinFrequency::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::MaxFrequency::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::MaxFrequency::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::Options::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::Options::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::OnOffTransitionTime::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::OnOffTransitionTime::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::OnLevel::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::OnLevel::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::OnTransitionTime::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::OnTransitionTime::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::OffTransitionTime::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::OffTransitionTime::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::DefaultMoveRate::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::DefaultMoveRate::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::LevelControl::Attributes::StartUpCurrentLevel::Id:
         Controller::ReadAttribute<Clusters::LevelControl::Attributes::StartUpCurrentLevel::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
     }
 }
 
-void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const EmberBindingTableEntry & binding,
+void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const BindingTableEntry & binding,
                                               OperationalDeviceProxy * peer_device)
 {
     auto onSuccess = [](const ConcreteCommandPath & commandPath, const StatusIB & status, const auto & dataResponse) {
@@ -158,6 +175,7 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
     };
 
     VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
+    VerifyOrDie(binding.remoteEndpointId.has_value());
 
     Clusters::LevelControl::Commands::MoveToLevel::Type moveToLevelCommand;
     Clusters::LevelControl::Commands::Move::Type moveCommand;
@@ -175,8 +193,8 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
         moveToLevelCommand.transitionTime  = static_cast<DataModel::Nullable<uint16_t>>(data->args[1]);
         moveToLevelCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[2]);
         moveToLevelCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveToLevelCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveToLevelCommand, onSuccess, onFailure);
         break;
 
     case Clusters::LevelControl::Commands::Move::Id:
@@ -184,8 +202,8 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
         moveCommand.rate            = static_cast<DataModel::Nullable<uint8_t>>(data->args[1]);
         moveCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[2]);
         moveCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveCommand, onSuccess, onFailure);
         break;
 
     case Clusters::LevelControl::Commands::Step::Id:
@@ -194,15 +212,15 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
         stepCommand.transitionTime  = static_cast<DataModel::Nullable<uint16_t>>(data->args[2]);
         stepCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
         stepCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[4]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         stepCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), stepCommand, onSuccess, onFailure);
         break;
 
     case Clusters::LevelControl::Commands::Stop::Id:
         stopCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[0]);
         stopCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[1]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         stopCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), stopCommand, onSuccess, onFailure);
         break;
 
     case Clusters::LevelControl::Commands::MoveToLevelWithOnOff::Id:
@@ -210,8 +228,8 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
         moveToLevelWithOnOffCommand.transitionTime  = static_cast<DataModel::Nullable<uint16_t>>(data->args[1]);
         moveToLevelWithOnOffCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[2]);
         moveToLevelWithOnOffCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveToLevelWithOnOffCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveToLevelWithOnOffCommand, onSuccess, onFailure);
         break;
 
     case Clusters::LevelControl::Commands::MoveWithOnOff::Id:
@@ -219,8 +237,8 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
         moveWithOnOffCommand.rate            = static_cast<DataModel::Nullable<uint8_t>>(data->args[1]);
         moveWithOnOffCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[2]);
         moveWithOnOffCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveWithOnOffCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveWithOnOffCommand, onSuccess, onFailure);
         break;
 
     case Clusters::LevelControl::Commands::StepWithOnOff::Id:
@@ -229,21 +247,22 @@ void ProcessLevelControlUnicastBindingCommand(BindingCommandData * data, const E
         stepWithOnOffCommand.transitionTime  = static_cast<DataModel::Nullable<uint16_t>>(data->args[2]);
         stepWithOnOffCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
         stepWithOnOffCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[4]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         stepWithOnOffCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), stepWithOnOffCommand, onSuccess, onFailure);
         break;
 
     case Clusters::LevelControl::Commands::StopWithOnOff::Id:
         stopWithOnOffCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[0]);
         stopWithOnOffCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[1]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         stopWithOnOffCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), stopWithOnOffCommand, onSuccess, onFailure);
         break;
     }
 }
 
-void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const EmberBindingTableEntry & binding)
+void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const BindingTableEntry & binding)
 {
+    VerifyOrDie(binding.groupId.has_value());
     Messaging::ExchangeManager & exchangeMgr = Server::GetInstance().GetExchangeManager();
 
     Clusters::LevelControl::Commands::MoveToLevel::Type moveToLevelCommand;
@@ -262,7 +281,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveToLevelCommand.transitionTime  = static_cast<DataModel::Nullable<uint16_t>>(data->args[1]);
         moveToLevelCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[2]);
         moveToLevelCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveToLevelCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToLevelCommand);
         break;
 
     case Clusters::LevelControl::Commands::Move::Id:
@@ -270,7 +289,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveCommand.rate            = static_cast<DataModel::Nullable<uint8_t>>(data->args[1]);
         moveCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[2]);
         moveCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveCommand);
         break;
 
     case Clusters::LevelControl::Commands::Step::Id:
@@ -279,13 +298,13 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
         stepCommand.transitionTime  = static_cast<DataModel::Nullable<uint16_t>>(data->args[2]);
         stepCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
         stepCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[4]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stepCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), stepCommand);
         break;
 
     case Clusters::LevelControl::Commands::Stop::Id:
         stopCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[0]);
         stopCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[1]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stopCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), stopCommand);
         break;
 
     case Clusters::LevelControl::Commands::MoveToLevelWithOnOff::Id:
@@ -293,7 +312,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveToLevelWithOnOffCommand.transitionTime  = static_cast<DataModel::Nullable<uint16_t>>(data->args[1]);
         moveToLevelWithOnOffCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[2]);
         moveToLevelWithOnOffCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveToLevelWithOnOffCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToLevelWithOnOffCommand);
         break;
 
     case Clusters::LevelControl::Commands::MoveWithOnOff::Id:
@@ -301,7 +320,7 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveWithOnOffCommand.rate            = static_cast<DataModel::Nullable<uint8_t>>(data->args[1]);
         moveWithOnOffCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[2]);
         moveWithOnOffCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveWithOnOffCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveWithOnOffCommand);
         break;
 
     case Clusters::LevelControl::Commands::StepWithOnOff::Id:
@@ -310,13 +329,13 @@ void ProcessLevelControlGroupBindingCommand(BindingCommandData * data, const Emb
         stepWithOnOffCommand.transitionTime  = static_cast<DataModel::Nullable<uint16_t>>(data->args[2]);
         stepWithOnOffCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[3]);
         stepWithOnOffCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[4]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stepWithOnOffCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), stepWithOnOffCommand);
         break;
 
     case Clusters::LevelControl::Commands::StopWithOnOff::Id:
         stopWithOnOffCommand.optionsMask     = static_cast<chip::BitMask<OptionsBitmap>>(data->args[0]);
         stopWithOnOffCommand.optionsOverride = static_cast<chip::BitMask<OptionsBitmap>>(data->args[1]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stopWithOnOffCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), stopWithOnOffCommand);
         break;
     }
 }

@@ -22,12 +22,12 @@
 #include "LevelControlCommands.h"
 #include "OnOffCommands.h"
 #include "ThermostatCommands.h"
-#include "app/clusters/bindings/BindingManager.h"
+#include "app/clusters/binding-server/BindingManager.h"
 #include "app/server/Server.h"
 #include "controller/InvokeInteraction.h"
 #include "controller/ReadInteraction.h"
 #include "platform/CHIPDeviceLayer.h"
-#include <app/clusters/bindings/bindings.h>
+#include <app/clusters/binding-server/BindingCluster.h>
 #include <lib/support/CodeUtils.h>
 
 #if CONFIG_ENABLE_CHIP_SHELL
@@ -37,6 +37,8 @@
 
 using namespace chip;
 using namespace chip::app;
+using chip::app::Clusters::BindingManager;
+using chip::app::Clusters::BindingTableEntry;
 
 #if CONFIG_ENABLE_CHIP_SHELL
 using Shell::Engine;
@@ -50,7 +52,7 @@ Engine sShellSwitchBindingSubCommands;
 #endif // defined(ENABLE_CHIP_SHELL)
 
 namespace {
-void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, OperationalDeviceProxy * peer_device, void * context)
+void LightSwitchChangedHandler(const BindingTableEntry & binding, OperationalDeviceProxy * peer_device, void * context)
 {
     VerifyOrReturn(context != nullptr, ChipLogError(NotSpecified, "OnDeviceConnectedFn: context is null"));
     BindingCommandData * data = static_cast<BindingCommandData *>(context);
@@ -58,7 +60,7 @@ void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, Operation
     if (data->isReadAttribute)
     {
         // It should always enter here if isReadAttribute is true
-        if (binding.type == MATTER_UNICAST_BINDING && !data->isGroup)
+        if (binding.nodeId.has_value() && binding.remoteEndpointId.has_value() && !data->isGroup)
         {
             switch (data->clusterId)
             {
@@ -82,7 +84,7 @@ void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, Operation
     }
     else
     {
-        if (binding.type == MATTER_MULTICAST_BINDING && data->isGroup)
+        if (binding.groupId.has_value() && data->isGroup)
         {
             switch (data->clusterId)
             {
@@ -103,7 +105,7 @@ void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, Operation
                 break;
             }
         }
-        else if (binding.type == MATTER_UNICAST_BINDING && !data->isGroup)
+        else if (binding.nodeId.has_value() && binding.remoteEndpointId.has_value() && !data->isGroup)
         {
             switch (data->clusterId)
             {
@@ -137,10 +139,10 @@ void LightSwitchContextReleaseHandler(void * context)
 void InitBindingHandlerInternal(intptr_t arg)
 {
     auto & server = chip::Server::GetInstance();
-    chip::BindingManager::GetInstance().Init(
+    BindingManager::GetInstance().Init(
         { &server.GetFabricTable(), server.GetCASESessionManager(), &server.GetPersistentStorage() });
-    chip::BindingManager::GetInstance().RegisterBoundDeviceChangedHandler(LightSwitchChangedHandler);
-    chip::BindingManager::GetInstance().RegisterBoundDeviceContextReleaseHandler(LightSwitchContextReleaseHandler);
+    BindingManager::GetInstance().RegisterBoundDeviceChangedHandler(LightSwitchChangedHandler);
+    BindingManager::GetInstance().RegisterBoundDeviceContextReleaseHandler(LightSwitchContextReleaseHandler);
 }
 
 #if CONFIG_ENABLE_CHIP_SHELL
@@ -189,12 +191,11 @@ CHIP_ERROR BindingGroupBindCommandHandler(int argc, char ** argv)
 {
     VerifyOrReturnError(argc == 2, CHIP_ERROR_INVALID_ARGUMENT);
 
-    EmberBindingTableEntry * entry = Platform::New<EmberBindingTableEntry>();
-    entry->type                    = MATTER_MULTICAST_BINDING;
-    entry->fabricIndex             = atoi(argv[0]);
-    entry->groupId                 = atoi(argv[1]);
-    entry->local                   = 1; // Hardcoded to endpoint 1 for now
-    entry->clusterId.emplace(6);        // Hardcoded to OnOff cluster for now
+    BindingTableEntry * entry = Platform::New<BindingTableEntry>();
+    entry->fabricIndex        = atoi(argv[0]);
+    entry->local              = 1; // Hardcoded to endpoint 1 for now
+    entry->groupId.emplace(atoi(argv[1]));
+    entry->clusterId.emplace(6); // Hardcoded to OnOff cluster for now
 
     DeviceLayer::PlatformMgr().ScheduleWork(BindingWorkerFunction, reinterpret_cast<intptr_t>(entry));
     return CHIP_NO_ERROR;
@@ -204,12 +205,12 @@ CHIP_ERROR BindingUnicastBindCommandHandler(int argc, char ** argv)
 {
     VerifyOrReturnError(argc == 3, CHIP_ERROR_INVALID_ARGUMENT);
 
-    EmberBindingTableEntry * entry = Platform::New<EmberBindingTableEntry>();
-    entry->type                    = MATTER_UNICAST_BINDING;
-    entry->fabricIndex             = atoi(argv[0]);
-    entry->nodeId                  = atoi(argv[1]);
-    entry->local                   = 1; // Hardcoded to endpoint 1 for now
-    entry->remote                  = atoi(argv[2]);
+    BindingTableEntry * entry = Platform::New<BindingTableEntry>();
+    entry->type               = MATTER_UNICAST_BINDING;
+    entry->fabricIndex        = atoi(argv[0]);
+    entry->local              = 1; // Hardcoded to endpoint 1 for now
+    entry->nodeId.emplace(atoi(argv[1]));
+    entry->remoteEndpointId.emplace(atoi(argv[2]));
     entry->clusterId.emplace(6); // Hardcode to OnOff cluster for now
 
     DeviceLayer::PlatformMgr().ScheduleWork(BindingWorkerFunction, reinterpret_cast<intptr_t>(entry));
@@ -638,7 +639,7 @@ void BindingWorkerFunction(intptr_t context)
 {
     VerifyOrReturn(context != 0, ChipLogError(NotSpecified, "BindingWorkerFunction - Invalid work data"));
 
-    EmberBindingTableEntry * entry = reinterpret_cast<EmberBindingTableEntry *>(context);
+    BindingTableEntry * entry = reinterpret_cast<BindingTableEntry *>(context);
     AddBindingEntry(*entry);
 
     Platform::Delete(entry);

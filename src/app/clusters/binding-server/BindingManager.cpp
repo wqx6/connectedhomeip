@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2022 Project CHIP Authors
+ *    Copyright (c) 2022-2025 Project CHIP Authors
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,53 +15,27 @@
  *    limitations under the License.
  */
 
-#include <app/clusters/bindings/BindingManager.h>
-#include <app/util/binding-table.h>
+#include <app/clusters/binding-server/BindingManager.h>
+#include <app/clusters/binding-server/BindingTable.h>
 #include <credentials/FabricTable.h>
+#include <lib/core/CHIPConfig.h>
+#include <lib/core/DataModelTypes.h>
+#include <lib/core/ScopedNodeId.h>
 #include <lib/support/CHIPMem.h>
 #include <lib/support/CodeUtils.h>
 
-namespace {
-
-class BindingFabricTableDelegate : public chip::FabricTable::Delegate
-{
-    void OnFabricRemoved(const chip::FabricTable & fabricTable, chip::FabricIndex fabricIndex) override
-    {
-        chip::BindingTable & bindingTable = chip::BindingTable::GetInstance();
-        auto iter                         = bindingTable.begin();
-        while (iter != bindingTable.end())
-        {
-            if (iter->fabricIndex == fabricIndex)
-            {
-                bindingTable.RemoveAt(iter);
-            }
-            else
-            {
-                ++iter;
-            }
-        }
-        chip::BindingManager::GetInstance().FabricRemoved(fabricIndex);
-    }
-};
-
-BindingFabricTableDelegate gFabricTableDelegate;
-
-} // namespace
-
-namespace {} // namespace
-
 namespace chip {
+namespace app {
+namespace Clusters {
 
-BindingManager BindingManager::sBindingManager;
-
-CHIP_ERROR BindingManager::UnicastBindingCreated(uint8_t fabricIndex, NodeId nodeId)
+CHIP_ERROR BindingManager::UnicastBindingCreated(FabricIndex fabricIndex, NodeId nodeId)
 {
     return EstablishConnection(ScopedNodeId(nodeId, fabricIndex));
 }
 
-CHIP_ERROR BindingManager::UnicastBindingRemoved(uint8_t bindingEntryId)
+CHIP_ERROR BindingManager::UnicastBindingRemoved(FabricIndex fabricIndex, uint8_t bindingEntryIndex)
 {
-    mPendingNotificationMap.RemoveEntry(bindingEntryId);
+    mPendingNotificationMap.RemoveEntry(fabricIndex, bindingEntryIndex);
     return CHIP_NO_ERROR;
 }
 
@@ -70,33 +44,8 @@ CHIP_ERROR BindingManager::Init(const BindingManagerInitParams & params)
     VerifyOrReturnError(params.mCASESessionManager != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(params.mFabricTable != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(params.mStorage != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
+    mBindingTable.SetPersistentStorage(params.mStorage);
     mInitParams = params;
-    params.mFabricTable->AddFabricDelegate(&gFabricTableDelegate);
-    BindingTable::GetInstance().SetPersistentStorage(params.mStorage);
-    CHIP_ERROR error = BindingTable::GetInstance().LoadFromStorage();
-    if (error != CHIP_NO_ERROR)
-    {
-        // This can happen during first boot of the device.
-        ChipLogProgress(AppServer, "Cannot load binding table: %" CHIP_ERROR_FORMAT, error.Format());
-    }
-    else
-    {
-        // In case the application does not want the BindingManager to establish a CASE session
-        // to the available bindings, it can be disabled by setting mEstablishConnectionOnInit
-        // to false.
-        if (params.mEstablishConnectionOnInit)
-        {
-            for (const EmberBindingTableEntry & entry : BindingTable::GetInstance())
-            {
-                if (entry.type == MATTER_UNICAST_BINDING)
-                {
-                    // The CASE connection can also fail if the unicast peer is offline.
-                    // There is recovery mechanism to retry connection on-demand so ignore error.
-                    (void) UnicastBindingCreated(entry.fabricIndex, entry.nodeId);
-                }
-            }
-        }
-    }
     return CHIP_NO_ERROR;
 }
 
@@ -133,22 +82,23 @@ void BindingManager::HandleDeviceConnected(Messaging::ExchangeManager & exchange
 {
     FabricIndex fabricToRemove = kUndefinedFabricIndex;
     NodeId nodeToRemove        = kUndefinedNodeId;
-
-    // Note: not using a const ref here, because the mPendingNotificationMap
-    // iterator returns things by value anyway.
-    for (PendingNotificationEntry pendingNotification : mPendingNotificationMap)
+    for (auto pendingNotification : mPendingNotificationMap)
     {
-        EmberBindingTableEntry entry = BindingTable::GetInstance().GetAt(pendingNotification.mBindingEntryId);
-
-        if (sessionHandle->GetPeer() == ScopedNodeId(entry.nodeId, entry.fabricIndex))
+        BindingTableEntry bindingEntry;
+        if (mBindingTable.Get(pendingNotification.mFabricIndex, pendingNotification.mBindingEntryIndex, bindingEntry) !=
+                CHIP_NO_ERROR ||
+            !bindingEntry.nodeId.has_value() || !bindingEntry.remoteEndpointId.has_value())
         {
-            fabricToRemove = entry.fabricIndex;
-            nodeToRemove   = entry.nodeId;
+            continue;
+        }
+        if (sessionHandle->GetPeer() == ScopedNodeId(bindingEntry.nodeId.value(), bindingEntry.fabricIndex))
+        {
+            fabricToRemove = bindingEntry.fabricIndex;
+            nodeToRemove   = bindingEntry.nodeId.value();
             OperationalDeviceProxy device(&exchangeMgr, sessionHandle);
-            mBoundDeviceChangedHandler(entry, &device, pendingNotification.mContext->GetContext());
+            mBoundDeviceChangedHandler(bindingEntry, &device, pendingNotification.mContext->GetContext());
         }
     }
-
     mPendingNotificationMap.RemoveAllEntriesForNode(ScopedNodeId(nodeToRemove, fabricToRemove));
 }
 
@@ -166,10 +116,6 @@ void BindingManager::HandleDeviceConnectionFailure(const ScopedNodeId & peerId, 
 void BindingManager::FabricRemoved(FabricIndex fabricIndex)
 {
     mPendingNotificationMap.RemoveAllEntriesForFabric(fabricIndex);
-
-    // TODO(#18436): NOC cluster should handle fabric removal without needing binding manager
-    //               to execute such a release. Currently not done because paths were not tested.
-    mInitParams.mCASESessionManager->ReleaseSessionsForFabric(fabricIndex);
 }
 
 CHIP_ERROR BindingManager::NotifyBoundClusterChanged(EndpointId endpoint, ClusterId cluster, void * context)
@@ -183,28 +129,38 @@ CHIP_ERROR BindingManager::NotifyBoundClusterChanged(EndpointId endpoint, Cluste
 
     bindingContext->IncrementConsumersNumber();
 
-    for (auto iter = BindingTable::GetInstance().begin(); iter != BindingTable::GetInstance().end(); ++iter)
+    const auto & fabricTable = Server::GetInstance().GetFabricTable();
+    for (auto & fabric : fabricTable)
     {
-        if (iter->local == endpoint && (iter->clusterId.value_or(cluster) == cluster))
+        FabricIndex fabricIndex = fabric.GetFabricIndex();
+        for (size_t bindingIndex = 0; bindingIndex < BindingTable::kMaxBindingEntriesPerFabric; ++bindingIndex)
         {
-            if (iter->type == MATTER_UNICAST_BINDING)
+            BindingTableEntry entry;
+            if (mBindingTable.Get(fabricIndex, bindingIndex, entry) == CHIP_ERROR_NOT_FOUND)
             {
-                error = mPendingNotificationMap.AddPendingNotification(iter.GetIndex(), bindingContext);
-                SuccessOrExit(error);
-                error = EstablishConnection(ScopedNodeId(iter->nodeId, iter->fabricIndex));
-                SuccessOrExit(error);
+                break;
             }
-            else if (iter->type == MATTER_MULTICAST_BINDING)
+            if (entry.localEndpointId == endpoint && (entry.clusterId.value_or(cluster) == cluster))
             {
-                mBoundDeviceChangedHandler(*iter, nullptr, bindingContext->GetContext());
+                if (entry.nodeId.has_value() && entry.remoteEndpointId.has_value())
+                {
+                    error = mPendingNotificationMap.AddPendingNotification(entry.fabricIndex, entry.index, bindingContext);
+                    SuccessOrExit(error);
+                    error = EstablishConnection(ScopedNodeId(entry.nodeId.value(), entry.fabricIndex));
+                    SuccessOrExit(error);
+                }
+                else if (entry.groupId.has_value())
+                {
+                    mBoundDeviceChangedHandler(entry, nullptr, bindingContext->GetContext());
+                }
             }
         }
     }
-
 exit:
     bindingContext->DecrementConsumersNumber();
 
     return error;
 }
-
+} // namespace Clusters
+} // namespace app
 } // namespace chip

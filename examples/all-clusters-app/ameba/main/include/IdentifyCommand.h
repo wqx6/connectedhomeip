@@ -18,7 +18,7 @@
 
 #include "controller/InvokeInteraction.h"
 #include "controller/ReadInteraction.h"
-#include <app/clusters/bindings/bindings.h>
+#include <app/clusters/binding-server/BindingTable.h>
 
 #if CONFIG_ENABLE_CHIP_SHELL
 #include "lib/shell/Engine.h"
@@ -27,6 +27,7 @@
 
 using namespace chip;
 using namespace chip::app;
+using chip::app::Clusters::BindingTableEntry;
 
 #if CONFIG_ENABLE_CHIP_SHELL
 using Shell::Engine;
@@ -39,7 +40,7 @@ Engine sShellSwitchIdentifyReadSubCommands;
 Engine sShellSwitchGroupsIdentifySubCommands;
 #endif // defined(ENABLE_CHIP_SHELL)
 
-void ProcessIdentifyUnicastBindingRead(BindingCommandData * data, const EmberBindingTableEntry & binding,
+void ProcessIdentifyUnicastBindingRead(BindingCommandData * data, const BindingTableEntry & binding,
                                        OperationalDeviceProxy * peer_device)
 {
     auto onSuccess = [](const ConcreteDataAttributePath & attributePath, const auto & dataResponse) {
@@ -51,27 +52,28 @@ void ProcessIdentifyUnicastBindingRead(BindingCommandData * data, const EmberBin
     };
 
     VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
+    VerifyOrDie(binding.remoteEndpointId.has_value());
 
     switch (data->attributeId)
     {
     case Clusters::Identify::Attributes::AttributeList::Id:
         Controller::ReadAttribute<Clusters::Identify::Attributes::AttributeList::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess, onFailure);
         break;
 
     case Clusters::Identify::Attributes::IdentifyTime::Id:
         Controller::ReadAttribute<Clusters::Identify::Attributes::IdentifyTime::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess, onFailure);
         break;
 
     case Clusters::Identify::Attributes::IdentifyType::Id:
         Controller::ReadAttribute<Clusters::Identify::Attributes::IdentifyType::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess, onFailure);
         break;
     }
 }
 
-void ProcessIdentifyUnicastBindingCommand(BindingCommandData * data, const EmberBindingTableEntry & binding,
+void ProcessIdentifyUnicastBindingCommand(BindingCommandData * data, const BindingTableEntry & binding,
                                           OperationalDeviceProxy * peer_device)
 {
     auto onSuccess = [](const ConcreteCommandPath & commandPath, const StatusIB & status, const auto & dataResponse) {
@@ -83,6 +85,7 @@ void ProcessIdentifyUnicastBindingCommand(BindingCommandData * data, const Ember
     };
 
     VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
+    VerifyOrDie(binding.remoteEndpointId.has_value());
 
     Clusters::Identify::Commands::Identify::Type identifyCommand;
     Clusters::Identify::Commands::TriggerEffect::Type triggerEffectCommand;
@@ -91,21 +94,22 @@ void ProcessIdentifyUnicastBindingCommand(BindingCommandData * data, const Ember
     {
     case Clusters::Identify::Commands::Identify::Id:
         identifyCommand.identifyTime = static_cast<uint16_t>(data->args[0]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(),
                                          identifyCommand, onSuccess, onFailure);
         break;
 
     case Clusters::Identify::Commands::TriggerEffect::Id:
         triggerEffectCommand.effectIdentifier = static_cast<Clusters::Identify::EffectIdentifierEnum>(data->args[0]);
         triggerEffectCommand.effectVariant    = static_cast<Clusters::Identify::EffectVariantEnum>(data->args[1]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(),
                                          triggerEffectCommand, onSuccess, onFailure);
         break;
     }
 }
 
-void ProcessIdentifyGroupBindingCommand(BindingCommandData * data, const EmberBindingTableEntry & binding)
+void ProcessIdentifyGroupBindingCommand(BindingCommandData * data, const BindingTableEntry & binding)
 {
+    VerifyOrDie(binding.groupId.has_value());
     Messaging::ExchangeManager & exchangeMgr = Server::GetInstance().GetExchangeManager();
 
     Clusters::Identify::Commands::Identify::Type identifyCommand;
@@ -115,13 +119,13 @@ void ProcessIdentifyGroupBindingCommand(BindingCommandData * data, const EmberBi
     {
     case Clusters::Identify::Commands::Identify::Id:
         identifyCommand.identifyTime = static_cast<uint16_t>(data->args[0]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, identifyCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), identifyCommand);
         break;
 
     case Clusters::Identify::Commands::TriggerEffect::Id:
         triggerEffectCommand.effectIdentifier = static_cast<Clusters::Identify::EffectIdentifierEnum>(data->args[0]);
         triggerEffectCommand.effectVariant    = static_cast<Clusters::Identify::EffectVariantEnum>(data->args[1]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, triggerEffectCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), triggerEffectCommand);
         break;
     }
 }

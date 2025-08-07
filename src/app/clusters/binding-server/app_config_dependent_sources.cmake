@@ -16,10 +16,19 @@
 TARGET_SOURCES(
   ${APP_TARGET}
   PRIVATE
+    "${CLUSTER_DIR}/CodegenIntegration.cpp"
+)
+
+# These are the things that BUILD.gn dependencies would pull
+TARGET_SOURCES(
+  ${APP_TARGET}
+  PRIVATE
     "${CLUSTER_DIR}/BindingManager.cpp"
     "${CLUSTER_DIR}/BindingManager.h"
     "${CLUSTER_DIR}/PendingNotificationMap.cpp"
     "${CLUSTER_DIR}/PendingNotificationMap.h"
-    "${CLUSTER_DIR}/bindings.cpp"
-    "${CLUSTER_DIR}/bindings.h"
+    "${CLUSTER_DIR}/BindingTable.cpp"
+    "${CLUSTER_DIR}/BindingTable.h"
+    "${CLUSTER_DIR}/BindingCluster.cpp"
+    "${CLUSTER_DIR}/BindingCluster.h"
 )

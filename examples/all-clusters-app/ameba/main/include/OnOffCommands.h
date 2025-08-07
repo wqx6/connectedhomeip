@@ -18,7 +18,7 @@
 
 #include "controller/InvokeInteraction.h"
 #include "controller/ReadInteraction.h"
-#include <app/clusters/bindings/bindings.h>
+#include <app/clusters/binding-server/BindingTable.h>
 
 #if CONFIG_ENABLE_CHIP_SHELL
 #include "lib/shell/Engine.h"
@@ -27,6 +27,7 @@
 
 using namespace chip;
 using namespace chip::app;
+using chip::app::Clusters::BindingTableEntry;
 
 #if CONFIG_ENABLE_CHIP_SHELL
 using Shell::Engine;
@@ -39,7 +40,7 @@ Engine sShellSwitchOnOffReadSubCommands;
 Engine sShellSwitchGroupsOnOffSubCommands;
 #endif // defined(ENABLE_CHIP_SHELL)
 
-void ProcessOnOffUnicastBindingRead(BindingCommandData * data, const EmberBindingTableEntry & binding,
+void ProcessOnOffUnicastBindingRead(BindingCommandData * data, const BindingTableEntry & binding,
                                     OperationalDeviceProxy * peer_device)
 {
     auto onSuccess = [](const ConcreteDataAttributePath & attributePath, const auto & dataResponse) {
@@ -51,42 +52,49 @@ void ProcessOnOffUnicastBindingRead(BindingCommandData * data, const EmberBindin
     };
 
     VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
+    VerifyOrDie(binding.remoteEndpointId.has_value());
 
     switch (data->attributeId)
     {
     case Clusters::OnOff::Attributes::AttributeList::Id:
         Controller::ReadAttribute<Clusters::OnOff::Attributes::AttributeList::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::OnOff::Attributes::OnOff::Id:
         Controller::ReadAttribute<Clusters::OnOff::Attributes::OnOff::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::OnOff::Attributes::GlobalSceneControl::Id:
         Controller::ReadAttribute<Clusters::OnOff::Attributes::GlobalSceneControl::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::OnOff::Attributes::OnTime::Id:
         Controller::ReadAttribute<Clusters::OnOff::Attributes::OnTime::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::OnOff::Attributes::OffWaitTime::Id:
         Controller::ReadAttribute<Clusters::OnOff::Attributes::OffWaitTime::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::OnOff::Attributes::StartUpOnOff::Id:
         Controller::ReadAttribute<Clusters::OnOff::Attributes::StartUpOnOff::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
     }
 }
 
-void ProcessOnOffUnicastBindingCommand(BindingCommandData * data, const EmberBindingTableEntry & binding,
+void ProcessOnOffUnicastBindingCommand(BindingCommandData * data, const BindingTableEntry & binding,
                                        OperationalDeviceProxy * peer_device)
 {
     auto onSuccess = [](const ConcreteCommandPath & commandPath, const StatusIB & status, const auto & dataResponse) {
@@ -98,6 +106,7 @@ void ProcessOnOffUnicastBindingCommand(BindingCommandData * data, const EmberBin
     };
 
     VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
+    VerifyOrDie(binding.remoteEndpointId.has_value());
 
     Clusters::OnOff::Commands::Toggle::Type toggleCommand;
     Clusters::OnOff::Commands::On::Type onCommand;
@@ -109,44 +118,45 @@ void ProcessOnOffUnicastBindingCommand(BindingCommandData * data, const EmberBin
     switch (data->commandId)
     {
     case Clusters::OnOff::Commands::Toggle::Id:
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         toggleCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), toggleCommand, onSuccess, onFailure);
         break;
 
     case Clusters::OnOff::Commands::On::Id:
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         onCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), onCommand, onSuccess, onFailure);
         break;
 
     case Clusters::OnOff::Commands::Off::Id:
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         offCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), offCommand, onSuccess, onFailure);
         break;
 
     case Clusters::OnOff::Commands::OffWithEffect::Id:
         offwitheffectCommand.effectIdentifier = static_cast<Clusters::OnOff::EffectIdentifierEnum>(data->args[0]);
         offwitheffectCommand.effectVariant    = static_cast<uint8_t>(data->args[1]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         offwitheffectCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), offwitheffectCommand, onSuccess, onFailure);
         break;
 
     case Clusters::OnOff::Commands::OnWithRecallGlobalScene::Id:
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         onwithrecallglobalsceneCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), onwithrecallglobalsceneCommand, onSuccess, onFailure);
         break;
 
     case Clusters::OnOff::Commands::OnWithTimedOff::Id:
         onwithtimedoffCommand.onOffControl = static_cast<chip::BitMask<Clusters::OnOff::OnOffControlBitmap>>(data->args[0]);
         onwithtimedoffCommand.onTime       = static_cast<uint16_t>(data->args[1]);
         onwithtimedoffCommand.offWaitTime  = static_cast<uint16_t>(data->args[2]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         onwithtimedoffCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), onwithtimedoffCommand, onSuccess, onFailure);
         break;
     }
 }
 
-void ProcessOnOffGroupBindingCommand(BindingCommandData * data, const EmberBindingTableEntry & binding)
+void ProcessOnOffGroupBindingCommand(BindingCommandData * data, const BindingTableEntry & binding)
 {
+    VerifyOrDie(binding.groupId.has_value());
     Messaging::ExchangeManager & exchangeMgr = Server::GetInstance().GetExchangeManager();
 
     Clusters::OnOff::Commands::Toggle::Type toggleCommand;
@@ -159,32 +169,32 @@ void ProcessOnOffGroupBindingCommand(BindingCommandData * data, const EmberBindi
     switch (data->commandId)
     {
     case Clusters::OnOff::Commands::Toggle::Id:
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, toggleCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), toggleCommand);
         break;
 
     case Clusters::OnOff::Commands::On::Id:
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, onCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), onCommand);
         break;
 
     case Clusters::OnOff::Commands::Off::Id:
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, offCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), offCommand);
         break;
 
     case Clusters::OnOff::Commands::OffWithEffect::Id:
         offwitheffectCommand.effectIdentifier = static_cast<Clusters::OnOff::EffectIdentifierEnum>(data->args[0]);
         offwitheffectCommand.effectVariant    = static_cast<uint8_t>(data->args[1]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, offwitheffectCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), offwitheffectCommand);
         break;
 
     case Clusters::OnOff::Commands::OnWithRecallGlobalScene::Id:
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, onwithrecallglobalsceneCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), onwithrecallglobalsceneCommand);
         break;
 
     case Clusters::OnOff::Commands::OnWithTimedOff::Id:
         onwithtimedoffCommand.onOffControl = static_cast<chip::BitMask<Clusters::OnOff::OnOffControlBitmap>>(data->args[0]);
         onwithtimedoffCommand.onTime       = static_cast<uint16_t>(data->args[1]);
         onwithtimedoffCommand.offWaitTime  = static_cast<uint16_t>(data->args[2]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, onwithtimedoffCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), onwithtimedoffCommand);
         break;
     }
 }

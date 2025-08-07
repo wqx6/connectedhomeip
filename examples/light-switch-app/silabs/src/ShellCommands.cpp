@@ -21,7 +21,7 @@
 #include "ShellCommands.h"
 #include "BindingHandler.h"
 
-#include <app/clusters/bindings/bindings.h>
+#include <app/clusters/binding-server/BindingTable.h>
 #include <lib/shell/Engine.h>
 #include <lib/shell/commands/Help.h>
 #include <platform/CHIPDeviceLayer.h>
@@ -140,11 +140,10 @@ CHIP_ERROR BindingGroupBindCommandHandler(int argc, char ** argv)
 {
     VerifyOrReturnError(argc == 2, CHIP_ERROR_INVALID_ARGUMENT);
 
-    EmberBindingTableEntry * entry = Platform::New<EmberBindingTableEntry>();
-    entry->type                    = MATTER_MULTICAST_BINDING;
+    BindingTableEntry * entry = Platform::New<BindingTableEntry>();
     entry->fabricIndex             = atoi(argv[0]);
-    entry->groupId                 = atoi(argv[1]);
     entry->local                   = 1; // Hardcoded to endpoint 1 for now
+    entry->groupId.emplace(atoi(argv[1]));
     entry->clusterId.emplace(6);        // Hardcoded to OnOff cluster for now
 
     DeviceLayer::PlatformMgr().ScheduleWork(BindingWorkerFunction, reinterpret_cast<intptr_t>(entry));
@@ -155,12 +154,11 @@ CHIP_ERROR BindingUnicastBindCommandHandler(int argc, char ** argv)
 {
     VerifyOrReturnError(argc == 3, CHIP_ERROR_INVALID_ARGUMENT);
 
-    EmberBindingTableEntry * entry = Platform::New<EmberBindingTableEntry>();
-    entry->type                    = MATTER_UNICAST_BINDING;
+    BindingTableEntry * entry = Platform::New<BindingTableEntry>();
     entry->fabricIndex             = atoi(argv[0]);
-    entry->nodeId                  = atoi(argv[1]);
     entry->local                   = 1; // Hardcoded to endpoint 1 for now
-    entry->remote                  = atoi(argv[2]);
+    entry->nodeId.emplace(atoi(argv[1]));
+    entry->remote.emplace(atoi(argv[2]));
     entry->clusterId.emplace(6); // Hardcode to OnOff cluster for now
 
     DeviceLayer::PlatformMgr().ScheduleWork(BindingWorkerFunction, reinterpret_cast<intptr_t>(entry));

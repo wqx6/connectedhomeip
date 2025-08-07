@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2022 Project CHIP Authors
+ *    Copyright (c) 2022-2025 Project CHIP Authors
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,13 +18,15 @@
 #pragma once
 
 #include <app/CASESessionManager.h>
-#include <app/clusters/bindings/PendingNotificationMap.h>
+#include <app/clusters/binding-server/BindingTable.h>
+#include <app/clusters/binding-server/PendingNotificationMap.h>
 #include <app/server/Server.h>
-#include <app/util/binding-table.h>
 #include <credentials/FabricTable.h>
 #include <lib/core/CHIPPersistentStorageDelegate.h>
 
 namespace chip {
+namespace app {
+namespace Clusters {
 
 /**
  * Application callback function when a cluster associated with a binding changes.
@@ -39,8 +41,7 @@ namespace chip {
  *
  * The handler is not allowed to hold onto the pointer to the SessionHandler that is passed in.
  */
-using BoundDeviceChangedHandler = void (*)(const EmberBindingTableEntry & binding, OperationalDeviceProxy * peer_device,
-                                           void * context);
+using BoundDeviceChangedHandler = void (*)(const BindingTableEntry & binding, OperationalDeviceProxy * peer_device, void * context);
 
 /**
  * Application callback function when a context used in NotifyBoundClusterChanged will not be needed and should be
@@ -74,8 +75,6 @@ struct BindingManagerInitParams
 class BindingManager
 {
 public:
-    BindingManager() {}
-
     void RegisterBoundDeviceChangedHandler(BoundDeviceChangedHandler handler) { mBoundDeviceChangedHandler = handler; }
 
     /*
@@ -94,13 +93,13 @@ public:
      * Notifies the BindingManager that a new unicast binding is created.
      *
      */
-    CHIP_ERROR UnicastBindingCreated(uint8_t fabricIndex, NodeId nodeId);
+    CHIP_ERROR UnicastBindingCreated(FabricIndex fabricIndex, NodeId nodeId);
 
     /*
      * Notifies the BindingManager that a unicast binding is about to be removed from the given index.
      *
      */
-    CHIP_ERROR UnicastBindingRemoved(uint8_t bindingEntryId);
+    CHIP_ERROR UnicastBindingRemoved(FabricIndex fabricIndex, uint8_t bindingEntryIndex);
 
     /*
      * Notifies the BindingManager that a fabric is removed from the device
@@ -120,7 +119,13 @@ public:
      */
     CHIP_ERROR NotifyBoundClusterChanged(EndpointId endpoint, ClusterId cluster, void * context);
 
-    static BindingManager & GetInstance() { return sBindingManager; }
+    BindingTable & GetBindingTable() { return mBindingTable; }
+
+    static BindingManager & GetInstance()
+    {
+        static BindingManager instance;
+        return instance;
+    }
 
 private:
     /*
@@ -164,10 +169,11 @@ private:
         Callback::Callback<OnDeviceConnectionFailure> mOnConnectionFailureCallback;
     };
 
-    static BindingManager sBindingManager;
+    BindingManager() : mPendingNotificationMap(mBindingTable) {}
 
     CHIP_ERROR EstablishConnection(const ScopedNodeId & nodeId);
 
+    BindingTable mBindingTable;
     PendingNotificationMap mPendingNotificationMap;
     BoundDeviceChangedHandler mBoundDeviceChangedHandler;
     BindingManagerInitParams mInitParams;
@@ -179,4 +185,6 @@ private:
     CHIP_ERROR mLastSessionEstablishmentError;
 };
 
+} // namespace Clusters
+} // namespace app
 } // namespace chip

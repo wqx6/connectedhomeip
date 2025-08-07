@@ -18,7 +18,7 @@
 
 #include "controller/InvokeInteraction.h"
 #include "controller/ReadInteraction.h"
-#include <app/clusters/bindings/bindings.h>
+#include <app/clusters/binding-server/BindingTable.h>
 
 #if CONFIG_ENABLE_CHIP_SHELL
 #include "lib/shell/Engine.h"
@@ -27,6 +27,7 @@
 
 using namespace chip;
 using namespace chip::app;
+using chip::app::Clusters::BindingTableEntry;
 
 #if CONFIG_ENABLE_CHIP_SHELL
 using Shell::Engine;
@@ -39,7 +40,7 @@ Engine sShellSwitchColorControlReadSubCommands;
 Engine sShellSwitchGroupsColorControlSubCommands;
 #endif // defined(ENABLE_CHIP_SHELL)
 
-void ProcessColorControlUnicastBindingRead(BindingCommandData * data, const EmberBindingTableEntry & binding,
+void ProcessColorControlUnicastBindingRead(BindingCommandData * data, const BindingTableEntry & binding,
                                            OperationalDeviceProxy * peer_device)
 {
     auto onSuccess = [](const ConcreteDataAttributePath & attributePath, const auto & dataResponse) {
@@ -51,277 +52,331 @@ void ProcessColorControlUnicastBindingRead(BindingCommandData * data, const Embe
     };
 
     VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
+    VerifyOrDie(binding.remoteEndpointId.has_value());
 
     switch (data->attributeId)
     {
     case Clusters::ColorControl::Attributes::AttributeList::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::AttributeList::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::CurrentHue::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::CurrentHue::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::CurrentSaturation::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::CurrentSaturation::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::RemainingTime::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::RemainingTime::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::CurrentX::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::CurrentX::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::CurrentY::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::CurrentY::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::DriftCompensation::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::DriftCompensation::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::CompensationText::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::CompensationText::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorTemperatureMireds::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorTemperatureMireds::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorMode::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorMode::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Options::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Options::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::NumberOfPrimaries::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::NumberOfPrimaries::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary1X::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary1X::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary1Y::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary1Y::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary1Intensity::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary1Intensity::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary2X::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary2X::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary2Y::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary2Y::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary2Intensity::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary2Intensity::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary3X::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary3X::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary3Y::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary3Y::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary3Intensity::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary3Intensity::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary4X::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary4X::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary4Y::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary4Y::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary4Intensity::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary4Intensity::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary5X::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary5X::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary5Y::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary5Y::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary5Intensity::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary5Intensity::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary6X::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary6X::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary6Y::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary6Y::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::Primary6Intensity::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::Primary6Intensity::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::WhitePointX::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::WhitePointX::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::WhitePointY::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::WhitePointY::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorPointRX::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorPointRX::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorPointRY::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorPointRY::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorPointRIntensity::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorPointRIntensity::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorPointGX::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorPointGX::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorPointGY::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorPointGY::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorPointGIntensity::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorPointGIntensity::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorPointBX::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorPointBX::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorPointBY::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorPointBY::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorPointBIntensity::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorPointBIntensity::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::EnhancedCurrentHue::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::EnhancedCurrentHue::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::EnhancedColorMode::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::EnhancedColorMode::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorLoopActive::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorLoopActive::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorLoopDirection::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorLoopDirection::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorLoopTime::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorLoopTime::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorLoopStartEnhancedHue::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorLoopStartEnhancedHue::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorLoopStoredEnhancedHue::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorLoopStoredEnhancedHue::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorCapabilities::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorCapabilities::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorTempPhysicalMinMireds::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorTempPhysicalMinMireds::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::ColorTempPhysicalMaxMireds::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::ColorTempPhysicalMaxMireds::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::CoupleColorTempToLevelMinMireds::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::CoupleColorTempToLevelMinMireds::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
 
     case Clusters::ColorControl::Attributes::StartUpColorTemperatureMireds::Id:
         Controller::ReadAttribute<Clusters::ColorControl::Attributes::StartUpColorTemperatureMireds::TypeInfo>(
-            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote, onSuccess, onFailure);
+            peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remoteEndpointId.value(), onSuccess,
+            onFailure);
         break;
     }
 }
 
-void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const EmberBindingTableEntry & binding,
+void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const BindingTableEntry & binding,
                                               OperationalDeviceProxy * peer_device)
 {
     using namespace Clusters::ColorControl;
@@ -335,6 +390,7 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
     };
 
     VerifyOrDie(peer_device != nullptr && peer_device->ConnectionReady());
+    VerifyOrDie(binding.remoteEndpointId.has_value());
 
     Clusters::ColorControl::Commands::MoveToHue::Type moveToHueCommand;
     Clusters::ColorControl::Commands::MoveHue::Type moveHueCommand;
@@ -364,8 +420,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         moveToHueCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         moveToHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         moveToHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveToHueCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveToHueCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::MoveHue::Id:
@@ -373,8 +429,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         moveHueCommand.rate            = static_cast<uint8_t>(data->args[1]);
         moveHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[2]);
         moveHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveHueCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveHueCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::StepHue::Id:
@@ -383,8 +439,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         stepHueCommand.transitionTime  = static_cast<uint8_t>(data->args[2]);
         stepHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         stepHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         stepHueCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), stepHueCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::MoveToSaturation::Id:
@@ -392,8 +448,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         moveToSaturationCommand.transitionTime  = static_cast<uint16_t>(data->args[1]);
         moveToSaturationCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[2]);
         moveToSaturationCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveToSaturationCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveToSaturationCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::MoveSaturation::Id:
@@ -401,8 +457,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         moveSaturationCommand.rate            = static_cast<uint8_t>(data->args[1]);
         moveSaturationCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[2]);
         moveSaturationCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveSaturationCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveSaturationCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::StepSaturation::Id:
@@ -411,8 +467,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         stepSaturationCommand.transitionTime  = static_cast<uint8_t>(data->args[2]);
         stepSaturationCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         stepSaturationCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         stepSaturationCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), stepSaturationCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::MoveToHueAndSaturation::Id:
@@ -421,8 +477,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         moveToHueAndSaturationCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         moveToHueAndSaturationCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         moveToHueAndSaturationCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveToHueAndSaturationCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveToHueAndSaturationCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::MoveToColor::Id:
@@ -431,8 +487,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         moveToColorCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         moveToColorCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         moveToColorCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveToColorCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveToColorCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::MoveColor::Id:
@@ -440,8 +496,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         moveColorCommand.rateY           = static_cast<uint16_t>(data->args[1]);
         moveColorCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[2]);
         moveColorCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveColorCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveColorCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::StepColor::Id:
@@ -450,8 +506,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         stepColorCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         stepColorCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         stepColorCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         stepColorCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), stepColorCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::MoveToColorTemperature::Id:
@@ -459,8 +515,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         moveToColorTemperatureCommand.transitionTime         = static_cast<uint16_t>(data->args[1]);
         moveToColorTemperatureCommand.optionsMask            = static_cast<OptionsBitmap>(data->args[2]);
         moveToColorTemperatureCommand.optionsOverride        = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveToColorTemperatureCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveToColorTemperatureCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::EnhancedMoveToHue::Id:
@@ -469,8 +525,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         enhancedMoveToHueCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         enhancedMoveToHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         enhancedMoveToHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         enhancedMoveToHueCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), enhancedMoveToHueCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::EnhancedMoveHue::Id:
@@ -478,8 +534,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         enhancedMoveHueCommand.rate            = static_cast<uint16_t>(data->args[1]);
         enhancedMoveHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[2]);
         enhancedMoveHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         enhancedMoveHueCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), enhancedMoveHueCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::EnhancedStepHue::Id:
@@ -488,8 +544,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         enhancedStepHueCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         enhancedStepHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         enhancedStepHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         enhancedStepHueCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), enhancedStepHueCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::EnhancedMoveToHueAndSaturation::Id:
@@ -498,8 +554,9 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         enhancedMoveToHueAndSaturationCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         enhancedMoveToHueAndSaturationCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         enhancedMoveToHueAndSaturationCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         enhancedMoveToHueAndSaturationCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), enhancedMoveToHueAndSaturationCommand, onSuccess,
+                                         onFailure);
         break;
 
     case Clusters::ColorControl::Commands::ColorLoopSet::Id:
@@ -511,15 +568,15 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         colorLoopSetCommand.startHue        = static_cast<uint16_t>(data->args[4]);
         colorLoopSetCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[5]);
         colorLoopSetCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[6]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         colorLoopSetCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), colorLoopSetCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::StopMoveStep::Id:
         stopMoveStepCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[0]);
         stopMoveStepCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[1]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         stopMoveStepCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), stopMoveStepCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::MoveColorTemperature::Id:
@@ -529,8 +586,8 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         moveColorTemperatureCommand.colorTemperatureMaximumMireds = static_cast<uint16_t>(data->args[3]);
         moveColorTemperatureCommand.optionsMask                   = static_cast<OptionsBitmap>(data->args[4]);
         moveColorTemperatureCommand.optionsOverride               = static_cast<OptionsBitmap>(data->args[5]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         moveColorTemperatureCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), moveColorTemperatureCommand, onSuccess, onFailure);
         break;
 
     case Clusters::ColorControl::Commands::StepColorTemperature::Id:
@@ -541,16 +598,17 @@ void ProcessColorControlUnicastBindingCommand(BindingCommandData * data, const E
         stepColorTemperatureCommand.colorTemperatureMaximumMireds = static_cast<uint16_t>(data->args[4]);
         stepColorTemperatureCommand.optionsMask                   = static_cast<OptionsBitmap>(data->args[5]);
         stepColorTemperatureCommand.optionsOverride               = static_cast<OptionsBitmap>(data->args[6]);
-        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(), binding.remote,
-                                         stepColorTemperatureCommand, onSuccess, onFailure);
+        Controller::InvokeCommandRequest(peer_device->GetExchangeManager(), peer_device->GetSecureSession().Value(),
+                                         binding.remoteEndpointId.value(), stepColorTemperatureCommand, onSuccess, onFailure);
         break;
     }
 }
 
-void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const EmberBindingTableEntry & binding)
+void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const BindingTableEntry & binding)
 {
     using namespace Clusters::ColorControl;
 
+    VerifyOrDie(binding.groupId.has_value());
     Messaging::ExchangeManager & exchangeMgr = Server::GetInstance().GetExchangeManager();
 
     Clusters::ColorControl::Commands::MoveToHue::Type moveToHueCommand;
@@ -581,7 +639,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveToHueCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         moveToHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         moveToHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveToHueCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::MoveHue::Id:
@@ -589,7 +647,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveHueCommand.rate            = static_cast<uint8_t>(data->args[1]);
         moveHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[2]);
         moveHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveHueCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::StepHue::Id:
@@ -598,7 +656,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         stepHueCommand.transitionTime  = static_cast<uint8_t>(data->args[2]);
         stepHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         stepHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stepHueCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::MoveToSaturation::Id:
@@ -606,7 +664,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveToSaturationCommand.transitionTime  = static_cast<uint16_t>(data->args[1]);
         moveToSaturationCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[2]);
         moveToSaturationCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveToSaturationCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::MoveSaturation::Id:
@@ -614,7 +672,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveSaturationCommand.rate            = static_cast<uint8_t>(data->args[1]);
         moveSaturationCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[2]);
         moveSaturationCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveSaturationCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::StepSaturation::Id:
@@ -623,7 +681,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         stepSaturationCommand.transitionTime  = static_cast<uint8_t>(data->args[2]);
         stepSaturationCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         stepSaturationCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stepSaturationCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::MoveToHueAndSaturation::Id:
@@ -632,7 +690,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveToHueAndSaturationCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         moveToHueAndSaturationCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         moveToHueAndSaturationCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveToHueAndSaturationCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::MoveToColor::Id:
@@ -641,7 +699,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveToColorCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         moveToColorCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         moveToColorCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveToColorCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::MoveColor::Id:
@@ -649,7 +707,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveColorCommand.rateY           = static_cast<uint16_t>(data->args[1]);
         moveColorCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[2]);
         moveColorCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveColorCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::StepColor::Id:
@@ -658,7 +716,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         stepColorCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         stepColorCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         stepColorCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stepColorCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::MoveToColorTemperature::Id:
@@ -666,7 +724,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveToColorTemperatureCommand.transitionTime         = static_cast<uint16_t>(data->args[1]);
         moveToColorTemperatureCommand.optionsMask            = static_cast<OptionsBitmap>(data->args[2]);
         moveToColorTemperatureCommand.optionsOverride        = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveToColorTemperatureCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::EnhancedMoveToHue::Id:
@@ -675,7 +733,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         enhancedMoveToHueCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         enhancedMoveToHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         enhancedMoveToHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, enhancedMoveToHueCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::EnhancedMoveHue::Id:
@@ -683,7 +741,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         enhancedMoveHueCommand.rate            = static_cast<uint16_t>(data->args[1]);
         enhancedMoveHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[2]);
         enhancedMoveHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[3]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, enhancedMoveHueCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::EnhancedStepHue::Id:
@@ -692,7 +750,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         enhancedStepHueCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         enhancedStepHueCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         enhancedStepHueCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, enhancedStepHueCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::EnhancedMoveToHueAndSaturation::Id:
@@ -701,7 +759,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         enhancedMoveToHueAndSaturationCommand.transitionTime  = static_cast<uint16_t>(data->args[2]);
         enhancedMoveToHueAndSaturationCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[3]);
         enhancedMoveToHueAndSaturationCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[4]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId,
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.has_value(),
                                               enhancedMoveToHueAndSaturationCommand);
         break;
 
@@ -714,13 +772,13 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         colorLoopSetCommand.startHue        = static_cast<uint16_t>(data->args[4]);
         colorLoopSetCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[5]);
         colorLoopSetCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[6]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, colorLoopSetCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::StopMoveStep::Id:
         stopMoveStepCommand.optionsMask     = static_cast<OptionsBitmap>(data->args[0]);
         stopMoveStepCommand.optionsOverride = static_cast<OptionsBitmap>(data->args[1]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stopMoveStepCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::MoveColorTemperature::Id:
@@ -730,7 +788,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         moveColorTemperatureCommand.colorTemperatureMaximumMireds = static_cast<uint16_t>(data->args[3]);
         moveColorTemperatureCommand.optionsMask                   = static_cast<OptionsBitmap>(data->args[4]);
         moveColorTemperatureCommand.optionsOverride               = static_cast<OptionsBitmap>(data->args[5]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, moveColorTemperatureCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
 
     case Clusters::ColorControl::Commands::StepColorTemperature::Id:
@@ -741,7 +799,7 @@ void ProcessColorControlGroupBindingCommand(BindingCommandData * data, const Emb
         stepColorTemperatureCommand.colorTemperatureMaximumMireds = static_cast<uint16_t>(data->args[4]);
         stepColorTemperatureCommand.optionsMask                   = static_cast<OptionsBitmap>(data->args[5]);
         stepColorTemperatureCommand.optionsOverride               = static_cast<OptionsBitmap>(data->args[6]);
-        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId, stepColorTemperatureCommand);
+        Controller::InvokeGroupCommandRequest(&exchangeMgr, binding.fabricIndex, binding.groupId.value(), moveToHueCommand);
         break;
     }
 }

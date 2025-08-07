@@ -186,10 +186,10 @@ public:
         return StorageKeyName::Formatted("g/sa/%x/%" PRIx32 "/%" PRIx32, endpointId, clusterId, attributeId);
     }
 
-    // TODO: Should store fabric-specific parts of the binding list under keys
-    // starting with "f/%x/".
-    static StorageKeyName BindingTable() { return StorageKeyName::FromConst("g/bt"); }
-    static StorageKeyName BindingTableEntry(uint8_t index) { return StorageKeyName::Formatted("g/bt/%x", index); }
+    static StorageKeyName BindingTableEntry(FabricIndex fabric, uint16_t index)
+    {
+        return StorageKeyName::Formatted("f/%x/b/%x", fabric, index);
+    }
 
     // ICD Management
 

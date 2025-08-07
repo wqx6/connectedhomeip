@@ -201,6 +201,7 @@
             "MaxPathsPerInvoke"
         ],
         "Bridged Device Basic Information": ["ProductAppearance"],
+        "Binding": [ "ClusterRevision", "FeatureMap", "Binding"],
         "Chime": ["SelectedChime", "Enabled"],
         "Closure Control": [
             "CountdownTime",

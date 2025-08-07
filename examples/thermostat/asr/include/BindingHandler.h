@@ -21,9 +21,11 @@
 #include "app-common/zap-generated/ids/Commands.h"
 #include "lib/core/CHIPError.h"
 #include <app/CommandSender.h>
-#include <app/clusters/bindings/BindingManager.h>
+#include <app/clusters/binding-server/BindingManager.h>
 #include <controller/InvokeInteraction.h>
 #include <platform/CHIPDeviceLayer.h>
+
+using chip::app::Clusters::BindingTableEntry;
 
 class BindingHandler
 {
@@ -46,9 +48,9 @@ public:
     static void SubscribeHumidityAttribute(chip::AttributeId attributeId, chip::DeviceProxy * peer_device, void * context);
 
 private:
-    static void ReadTemperatureAttribute(chip::AttributeId, const EmberBindingTableEntry &, chip::DeviceProxy *, void *);
-    static void ReadHumidityAttribute(chip::AttributeId, const EmberBindingTableEntry &, chip::DeviceProxy *, void *);
-    static void ThermostatChangedHandler(const EmberBindingTableEntry &, chip::OperationalDeviceProxy *, void *);
+    static void ReadTemperatureAttribute(chip::AttributeId, const BindingTableEntry &, chip::DeviceProxy *, void *);
+    static void ReadHumidityAttribute(chip::AttributeId, const BindingTableEntry &, chip::DeviceProxy *, void *);
+    static void ThermostatChangedHandler(const BindingTableEntry &, chip::OperationalDeviceProxy *, void *);
     static void ThermostatContextReleaseHandler(void *);
     static void InitInternal(intptr_t);
 };

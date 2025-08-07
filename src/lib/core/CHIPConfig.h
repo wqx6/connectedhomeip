@@ -1173,6 +1173,15 @@ extern const char CHIP_NON_PRODUCTION_MARKER[];
 #endif
 
 /**
+ * @def CHIP_CONFIG_BINDING_ENTRIES_PER_FABRIC_PER_ENDPOINT
+ *
+ * Defines the number of binding entries supported per fabric per endpoint
+ */
+#ifndef CHIP_CONFIG_MAX_BINDING_ENTRIES_PER_FABRIC
+#define CHIP_CONFIG_MAX_BINDING_ENTRIES_PER_FABRIC 4
+#endif
+
+/**
  * @def CHIP_CONFIG_EXAMPLE_ACCESS_CONTROL_MAX_ENTRIES_PER_FABRIC
  *
  * Defines the number of access control entries supported per fabric in the
