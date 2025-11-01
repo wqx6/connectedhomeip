@@ -40,7 +40,7 @@
 #include <system/SystemError.h>
 #include <system/SystemEvent.h>
 
-#if CHIP_SYSTEM_CONFIG_USE_SOCKETS
+#if CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK || (CHIP_SYSTEM_CONFIG_USE_OPENTHREAD_ENDPOINT && __linux__)
 #include <lib/support/IntrusiveList.h>
 #include <system/SocketEvents.h>
 #endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS
@@ -235,7 +235,8 @@ class LayerFreeRTOS : public Layer
 
 #endif // CHIP_SYSTEM_CONFIG_USE_LWIP
 
-#if CHIP_SYSTEM_CONFIG_USE_SOCKETS
+#if CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK || (CHIP_SYSTEM_CONFIG_USE_OPENTHREAD_ENDPOINT && __linux__)
+
 class LayerSockets : public Layer
 {
 public:

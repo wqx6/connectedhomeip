@@ -576,6 +576,16 @@ void LayerImplSelect::PrepareEvents()
             }
         }
     }
+
+    if (mPrepareEvents != nullptr)
+    {
+        auto timeout = Clock::Microseconds64(mPrepareEvents());
+
+        if (timeout < sleepTime)
+        {
+            Clock::ToTimeval(timeout, mNextTimeout);
+        }
+    }
 }
 
 void LayerImplSelect::WaitForEvents()
@@ -598,6 +608,10 @@ void LayerImplSelect::HandleEvents()
     mHandleSelectThread = pthread_self();
 #endif // CHIP_SYSTEM_CONFIG_POSIX_LOCKING
 
+    if (mProcessEvents != nullptr)
+    {
+        mProcessEvents();
+    }
     // Obtain the list of currently expired timers. Any new timers added by timer callback are NOT handled on this pass,
     // since that could result in infinite handling of new timers blocking any other progress.
     VerifyOrDieWithMsg(mExpiredTimers.Empty(), DeviceLayer, "Re-entry into HandleEvents from a timer callback?");

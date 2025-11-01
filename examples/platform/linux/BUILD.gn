@@ -203,6 +203,11 @@ source_set("app-main") {
     "CHIP_DEVICE_CONFIG_ENABLE_COMMODITY_METERING_TRIGGER=${chip_enable_commodity_metering_trigger}",
   ]
 
+  if (chip_enable_openthread) {
+    deps += [
+      "${chip_root}/third_party/openthread/platforms/simulation:openthread_simulation",
+    ]
+  }
   public_configs = [ ":app-main-config" ]
 }
 

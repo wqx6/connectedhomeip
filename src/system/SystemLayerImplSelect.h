@@ -23,6 +23,7 @@
 #pragma once
 
 #include "system/SystemConfig.h"
+#include <functional>
 
 #if CHIP_SYSTEM_CONFIG_USE_POSIX_SOCKETS
 #include <sys/select.h>
@@ -52,6 +53,9 @@ namespace System {
 class LayerImplSelect : public LayerSocketsLoop
 {
 public:
+    std::function<long()> mPrepareEvents = nullptr;
+    std::function<void()> mProcessEvents = nullptr;
+
     LayerImplSelect() = default;
     ~LayerImplSelect() override { VerifyOrDie(mLayerState.Destroy()); }
 
@@ -83,6 +87,15 @@ public:
     void WaitForEvents() override;
     void HandleEvents() override;
     void EventLoopEnds() override {}
+
+    template <typename T>
+    void RegisterExtension(T & o)
+    {
+        mPrepareEvents = [&o, this] {
+            return o.PrepareEvents(mMaxFd, mSelected.mReadSet, mSelected.mWriteSet, mSelected.mErrorSet);
+        };
+        mProcessEvents = [&o, this] { o.ProcessEvents(mSelected.mReadSet, mSelected.mWriteSet, mSelected.mErrorSet); };
+    }
 
     void AddLoopHandler(EventLoopHandler & handler) override;
     void RemoveLoopHandler(EventLoopHandler & handler) override;
