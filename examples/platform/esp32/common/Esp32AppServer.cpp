@@ -166,6 +166,8 @@ void Esp32AppServer::DeInitBLEIfCommissioned(void)
 
 void Esp32AppServer::Init(AppDelegate * sAppDelegate)
 {
+    ESPOpenThreadInit();
+
     // Init ZCL Data Model and CHIP App Server
     static chip::CommonCaseDeviceServerInitParams initParams;
 #if CONFIG_TEST_EVENT_TRIGGER_ENABLED
@@ -228,8 +230,6 @@ void Esp32AppServer::Init(AppDelegate * sAppDelegate)
         initParams.appDelegate = sAppDelegate;
     }
     chip::Server::GetInstance().Init(initParams);
-
-    ESPOpenThreadInit();
 
 #if CHIP_DEVICE_CONFIG_ENABLE_WIFI
 #ifdef CONFIG_ENABLE_CHIP_SHELL

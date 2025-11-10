@@ -54,10 +54,7 @@ CHIP_ERROR ChipDnssdPublishService(const DnssdService * service, DnssdPublishCal
     ReturnErrorOnFailure(EspDnssdPublishService(service, callback, context));
 #endif
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD && CHIP_DEVICE_CONFIG_ENABLE_THREAD_SRP_CLIENT
-    if (ConnectivityMgr().IsThreadProvisioned())
-    {
-        ReturnErrorOnFailure(OpenThreadDnssdPublishService(service, callback, context));
-    }
+    ReturnErrorOnFailure(OpenThreadDnssdPublishService(service, callback, context));
 #endif
     return CHIP_NO_ERROR;
 }
@@ -68,10 +65,7 @@ CHIP_ERROR ChipDnssdRemoveServices()
     ReturnErrorOnFailure(EspDnssdRemoveServices());
 #endif
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD && CHIP_DEVICE_CONFIG_ENABLE_THREAD_SRP_CLIENT
-    if (ConnectivityMgr().IsThreadProvisioned())
-    {
-        ReturnErrorOnFailure(OpenThreadDnssdRemoveServices());
-    }
+    ReturnErrorOnFailure(OpenThreadDnssdRemoveServices());
 #endif
     return CHIP_NO_ERROR;
 }
@@ -79,10 +73,7 @@ CHIP_ERROR ChipDnssdRemoveServices()
 CHIP_ERROR ChipDnssdFinalizeServiceUpdate()
 {
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD && CHIP_DEVICE_CONFIG_ENABLE_THREAD_SRP_CLIENT
-    if (ConnectivityMgr().IsThreadProvisioned())
-    {
-        ReturnErrorOnFailure(OpenThreadDnssdFinalizeServiceUpdate());
-    }
+    ReturnErrorOnFailure(OpenThreadDnssdFinalizeServiceUpdate());
 #endif
     return CHIP_NO_ERROR;
 }
