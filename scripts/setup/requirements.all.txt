@@ -1,6 +1,9 @@
 pip-tools>=7.0.0
 virtualenv
 
+# IDF constraints
+-c constraints.esp32.txt
+
 # core build requirements
 -r requirements.build.txt
 

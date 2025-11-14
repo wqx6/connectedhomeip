@@ -1,3 +1,4 @@
 cryptography>=2.1.4
 pyelftools>=0.22
 pyserial>=3.3
+pydantic_core>=2.41.0 ; python_version >= "3.13"

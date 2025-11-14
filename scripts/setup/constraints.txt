@@ -32,7 +32,7 @@ cbor2==5.4.6
     # via -r requirements.zephyr.txt
 certifi==2022.12.7
     # via requests
-cffi==1.15.0 ; python_version < "3.13"
+cffi==1.17.1 ; python_version >= "3.13"
     # via
     #   -r requirements.all.txt
     #   cryptography
@@ -60,7 +60,9 @@ coloredlogs==15.0.1
     #   bluezoo
     #   matter-idl
 cryptography==43.0.0
-    # via -r requirements.all.txt
+    # via
+    #   -c constraints.esp32.txt
+    #   -r requirements.all.txt
 cxxfilt==0.3.0
     # via -r requirements.memory.txt
 decorator==5.1.1
@@ -214,7 +216,7 @@ types-protobuf==5.29.1.20250208
     #   mypy-protobuf
 types-pyyaml==6.0.12.20250915
     # via -r ../tests/requirements.txt
-typing-extensions==4.8.0
+typing-extensions==4.15.0
     # via
     #   mypy
     #   pyventus
