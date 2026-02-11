@@ -530,6 +530,7 @@ CHIP_ERROR DiscoveryImplPlatform::PublishService(const char * serviceType, TextE
                                                  const char ** subTypes, size_t subTypeSize,
                                                  const OperationalAdvertisingParameters & params)
 {
+    printf("peerId %llx %llx\n", params.GetPeerId().GetCompressedFabricId(), params.GetPeerId().GetNodeId()); 
     return PublishService(serviceType, textEntries, textEntrySize, subTypes, subTypeSize, params.GetPort(), params.GetInterfaceId(),
                           params.GetMac(), DnssdServiceProtocol::kDnssdProtocolTcp, params.GetPeerId(), params.IsIPv4Enabled());
 }
@@ -548,7 +549,9 @@ CHIP_ERROR DiscoveryImplPlatform::PublishService(const char * serviceType, TextE
                                                  DnssdServiceProtocol protocol, PeerId peerId, bool ipv4Enabled)
 {
     DnssdService service;
+    printf("line %d\n", __LINE__);
     ReturnErrorOnFailure(MakeHostName(service.mHostName, sizeof(service.mHostName), mac));
+    printf("line %d\n", __LINE__);
     ReturnErrorOnFailure(protocol == DnssdServiceProtocol::kDnssdProtocolTcp
                              ? MakeInstanceName(service.mName, sizeof(service.mName), peerId)
                              : GetCommissionableInstanceName(service.mName, sizeof(service.mName)));
@@ -572,6 +575,7 @@ CHIP_ERROR DiscoveryImplPlatform::PublishService(const char * serviceType, TextE
     service.mSubTypes      = subTypes;
     service.mSubTypeSize   = subTypeSize;
 
+    printf("line %d\n", __LINE__);
     ReturnErrorOnFailure(ChipDnssdPublishService(&service, HandleDnssdPublish, this));
 
 #ifdef DETAIL_LOGGING
@@ -614,15 +618,23 @@ CHIP_ERROR DiscoveryImplPlatform::PublishService(const char * serviceType, TextE
 
 CHIP_ERROR DiscoveryImplPlatform::Advertise(const OperationalAdvertisingParameters & params)
 {
+    printf("peerId %llx %llx\n", params.GetPeerId().GetCompressedFabricId(), params.GetPeerId().GetNodeId()); 
     PREPARE_RECORDS(Operational);
+    printf("peerId %llx %llx\n", params.GetPeerId().GetCompressedFabricId(), params.GetPeerId().GetNodeId()); 
 
     ADD_TXT_RECORD(SessionIdleInterval);
+    printf("peerId %llx %llx\n", params.GetPeerId().GetCompressedFabricId(), params.GetPeerId().GetNodeId()); 
     ADD_TXT_RECORD(SessionActiveInterval);
+    printf("peerId %llx %llx\n", params.GetPeerId().GetCompressedFabricId(), params.GetPeerId().GetNodeId()); 
     ADD_TXT_RECORD(SessionActiveThreshold);
+    printf("peerId %llx %llx\n", params.GetPeerId().GetCompressedFabricId(), params.GetPeerId().GetNodeId()); 
     ADD_TXT_RECORD(TcpSupported);
+    printf("peerId %llx %llx\n", params.GetPeerId().GetCompressedFabricId(), params.GetPeerId().GetNodeId()); 
     ADD_TXT_RECORD(LongIdleTimeICD); // Optional, will not be added if related 'params' doesn't have a value
+    printf("peerId %llx %llx\n", params.GetPeerId().GetCompressedFabricId(), params.GetPeerId().GetNodeId()); 
 
     ADD_PTR_RECORD(CompressedFabricId);
+    printf("peerId %llx %llx\n", params.GetPeerId().GetCompressedFabricId(), params.GetPeerId().GetNodeId()); 
 
     PUBLISH_RECORDS(Operational);
 

@@ -199,6 +199,7 @@ esp_err_t openthread_init_stack(void)
 #endif
     // Initialize the esp_netif bindings
     openthread_netif = init_openthread_netif(s_platform_config);
+    esp_netif_set_default_netif(openthread_netif);
     return ESP_OK;
 }
 

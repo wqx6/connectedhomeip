@@ -37,7 +37,9 @@ CHIP_ERROR MakeInstanceName(char * buffer, size_t bufferLen, const PeerId & peer
     CompressedFabricId fabricId = peerId.GetCompressedFabricId();
 
     StringBuilderBase builder(buffer, bufferLen);
-    builder.AddFormat("%016" PRIX64 "-%016" PRIX64, fabricId, nodeId);
+    builder.AddFormat(ChipLogFormatX64 "-" ChipLogFormatX64,
+                        ChipLogValueX64(fabricId),
+                        ChipLogValueX64(nodeId));
 
     VerifyOrReturnError(builder.Fit(), CHIP_ERROR_BUFFER_TOO_SMALL);
     return CHIP_NO_ERROR;

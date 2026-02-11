@@ -221,6 +221,8 @@ void Esp32AppServer::Init(AppDelegate * sAppDelegate)
 #endif
     initParams.testEventTriggerDelegate = &sTestEventTriggerDelegate;
 #endif // CONFIG_TEST_EVENT_TRIGGER_ENABLED && CONFIG_ENABLE_OTA_REQUESTOR
+    
+    ESPOpenThreadInit();
     (void) initParams.InitializeStaticResourcesBeforeServerInit();
     initParams.dataModelProvider = app::CodegenDataModelProviderInstance(initParams.persistentStorageDelegate);
     if (sAppDelegate != nullptr)
@@ -228,8 +230,6 @@ void Esp32AppServer::Init(AppDelegate * sAppDelegate)
         initParams.appDelegate = sAppDelegate;
     }
     TEMPORARY_RETURN_IGNORED chip::Server::GetInstance().Init(initParams);
-
-    ESPOpenThreadInit();
 
 #if CHIP_DEVICE_CONFIG_ENABLE_WIFI
 #ifdef CONFIG_ENABLE_CHIP_SHELL

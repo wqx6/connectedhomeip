@@ -152,6 +152,9 @@ CHIP_ERROR DnssdServer::SendThreadRendezvousAnnouncement(void * context, const T
     auto * self = static_cast<DnssdServer *>(context);
     VerifyOrReturnError(!self->mThreadRendezvousAnnouncement.IsNull(), CHIP_ERROR_INCORRECT_STATE);
 
+    char str[64];
+    peerAddr.ToString(str);
+    printf("peerAddr %s\n", str);
     return chip::Server::GetInstance().GetTransportManager().SendMessage(peerAddr, self->mThreadRendezvousAnnouncement.CloneData());
 }
 #endif // CHIP_DEVICE_CONFIG_ENABLE_THREAD_MESHCOP
@@ -210,7 +213,9 @@ void DnssdServer::GetPrimaryOrFallbackMACAddress(MutableByteSpan & mac)
 /// Set MDNS operational advertisement
 CHIP_ERROR DnssdServer::AdvertiseOperational()
 {
+    printf("line %d\n", __LINE__);
     VerifyOrReturnError(mFabricTable != nullptr, CHIP_ERROR_INCORRECT_STATE);
+    printf("line %d\n", __LINE__);
 
     for (const FabricInfo & fabricInfo : *mFabricTable)
     {

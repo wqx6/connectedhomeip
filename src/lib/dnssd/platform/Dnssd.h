@@ -66,7 +66,7 @@ struct TextEntry
 
 struct DnssdService
 {
-    char mName[Common::kInstanceNameMaxLength + 1];
+    char mName[Common::kInstanceNameMaxLength + 10];
     char mHostName[kHostNameMaxLength + 1] = "";
     char mType[kDnssdTypeMaxSize + 1];
     DnssdServiceProtocol mProtocol;

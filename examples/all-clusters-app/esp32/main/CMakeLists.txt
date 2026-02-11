@@ -35,6 +35,8 @@ set(SRC_DIRS_LIST     "${CMAKE_CURRENT_LIST_DIR}"
                       "${CHIP_ROOT}/examples/platform/esp32/ota"
                       "${CHIP_ROOT}/examples/platform/esp32/common"
                       "${CHIP_ROOT}/examples/platform/esp32/shell_extension"
+                      "${CHIP_ROOT}/src/lib/dnssd/minimal_mdns/records"
+                      "${CHIP_ROOT}/src/lib/dnssd/minimal_mdns/core"
 )
 
 
