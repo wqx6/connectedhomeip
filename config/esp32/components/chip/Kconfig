@@ -753,6 +753,13 @@ menu "CHIP Device Layer"
             help
                 Stack size of Thread task.
 
+        config ENABLE_THREAD_MESHCOP_COMMISSIONING
+            bool "Enable Thread MeshCoP commissioning"
+            default n
+            depends on ENABLE_MATTER_OVER_THREAD
+            help
+                Enable Thread MeshCoP commissioning
+
     endmenu
 
     menu "Ethernet Options"

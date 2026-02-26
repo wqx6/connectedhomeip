@@ -149,6 +149,10 @@ protected:
     CHIP_ERROR ConfigureThreadStack(otInstance * otInst);
     CHIP_ERROR DoInit(otInstance * otInst);
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD_MESHCOP
+    void SetRendezvousNetworkInterface(chip::Inet::InterfaceId interfaceId)
+    {
+        mRendezvousInterface = interfaceId;
+    }
     void _RendezvousStop();
     CHIP_ERROR _RendezvousStart(RendezvousAnnouncementRequestCallback announcementRequest, void * context);
     void _CancelRendezvousAnnouncement();
@@ -172,6 +176,7 @@ private:
     bool mTemporaryRxOnWhenIdle = false;
 
     chip::Transport::PeerAddress mRendezvousPeerAddr;
+    chip::Inet::InterfaceId mRendezvousInterface = chip::Inet::InterfaceId::Null();
 
     static constexpr uint8_t kMaxRendezvousRetransmissions                       = 5;
     uint8_t mRendezvousRetransmissionCount                                       = 0;

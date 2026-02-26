@@ -33,15 +33,20 @@
 #include "driver/uart.h"
 #include "esp_err.h"
 #include "esp_netif.h"
+#include "esp_netif_types.h"
 #include "esp_openthread.h"
 #include "esp_openthread_lock.h"
 #include "esp_openthread_netif_glue.h"
 #include "esp_openthread_types.h"
 #include "esp_vfs_eventfd.h"
 #include "lib/core/CHIPError.h"
+#include <lwip/netif.h>
+#include <lwip/sys.h>
+#include <lwip/tcpip.h>
 #include <lib/support/CodeUtils.h>
 #include <platform/OpenThread/OpenThreadUtils.h>
 #include <platform/ThreadStackManager.h>
+#include <inet/EndPointStateLwIP.h>
 
 namespace chip {
 namespace DeviceLayer {
@@ -57,6 +62,14 @@ CHIP_ERROR ThreadStackManagerImpl::_InitThreadStack()
     _LockThreadStack();
     err = GenericThreadStackManagerImpl_OpenThread<ThreadStackManagerImpl>::DoInit(esp_openthread_get_instance());
     _UnlockThreadStack();
+#if CHIP_DEVICE_CONFIG_ENABLE_THREAD_MESHCOP
+    esp_netif_t * openthread_netif = esp_openthread_get_netif();
+    LOCK_TCPIP_CORE();
+    struct netif *lwip_netif = netif_get_by_index(esp_netif_get_netif_impl_index(openthread_netif));
+    UNLOCK_TCPIP_CORE();
+    chip::Inet::InterfaceId interface(lwip_netif);
+    GenericThreadStackManagerImpl_OpenThread<ThreadStackManagerImpl>::SetRendezvousNetworkInterface(interface);
+#endif
     return err;
 }
 

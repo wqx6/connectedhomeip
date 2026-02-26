@@ -131,6 +131,10 @@ if(CONFIG_DISABLE_READ_CLIENT)
     chip_gn_arg_append("chip_enable_read_client"             "false")
 endif()
 
+if (CONFIG_ENABLE_THREAD_MESHCOP_COMMISSIONING)
+    chip_gn_arg_append("chip_device_config_enable_thread_meshcop"             "true")
+endif()
+
 if(CHIP_CODEGEN_PREGEN_DIR)
     chip_gn_arg_append("chip_code_pre_generated_directory"  "\"${CHIP_CODEGEN_PREGEN_DIR}\"")
 endif()

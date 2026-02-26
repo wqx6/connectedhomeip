@@ -37,6 +37,11 @@ set(SRC_DIRS_LIST     "${CMAKE_CURRENT_LIST_DIR}"
                       "${CHIP_ROOT}/examples/platform/esp32/shell_extension"
 )
 
+if (CONFIG_ENABLE_THREAD_MESHCOP_COMMISSIONING)
+    # Thread meshcop commissioning uses minimal mdns functions to construct DNS Announcement message
+    list(APPEND SRC_DIRS_LIST "${CHIP_ROOT}/src/lib/dnssd/minimal_mdns/records"
+                              "${CHIP_ROOT}/src/lib/dnssd/minimal_mdns/core")
+endif()
 
 if (CONFIG_ENABLE_PW_RPC)
 # Append additional directories for RPC build
