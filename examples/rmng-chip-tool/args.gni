@@ -1,0 +1,21 @@
+# Copyright (c) 2026 Project CHIP Authors
+# Licensed under the Apache License, Version 2.0 (the "License");
+
+import("//build_overrides/chip.gni")
+import("${chip_root}/config/standalone/args.gni")
+
+chip_device_project_config_include = "<CHIPProjectAppConfig.h>"
+chip_project_config_include = "<CHIPProjectAppConfig.h>"
+chip_system_project_config_include = "<SystemProjectConfig.h>"
+
+chip_project_config_include_dirs = [ "${chip_root}/examples/rmng-chip-tool/include" ]
+chip_project_config_include_dirs += [ "${chip_root}/config/standalone" ]
+
+matter_enable_tracing_support = true
+
+matter_log_json_payload_hex = true
+matter_log_json_payload_decode_full = true
+
+chip_tlv_validate_char_string_on_read = true
+chip_tlv_validate_char_string_on_write = true
+chip_support_thread_meshcop = true
