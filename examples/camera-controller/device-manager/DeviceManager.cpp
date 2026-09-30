@@ -40,12 +40,6 @@ using StreamUsageEnum = chip::app::Clusters::Globals::StreamUsageEnum;
 
 namespace camera {
 
-namespace {
-
-constexpr EndpointId kCameraEndpointId = 1;
-
-} // namespace
-
 void DeviceManager::VideoStreamSignalHandler(int sig)
 {
     if (sig == SIGCHLD)
@@ -87,13 +81,13 @@ void DeviceManager::Shutdown()
     WebRTCManager::Instance().Disconnect();
 }
 
-CHIP_ERROR DeviceManager::AllocateVideoStream(NodeId nodeId, uint8_t streamUsage, WebRTCOfferType offerType,
+CHIP_ERROR DeviceManager::AllocateVideoStream(NodeId nodeId, EndpointId endpointId, uint8_t streamUsage, WebRTCOfferType offerType,
                                               Optional<uint16_t> minWidth, Optional<uint16_t> minHeight,
                                               Optional<uint16_t> minFrameRate, Optional<uint32_t> minBitRate)
 {
     ChipLogProgress(Camera, "Allocate a video stream on the camera device.");
 
-    CHIP_ERROR error = mAVStreamManagment.AllocateVideoStream(nodeId, kCameraEndpointId, streamUsage, minWidth, minHeight,
+    CHIP_ERROR error = mAVStreamManagment.AllocateVideoStream(nodeId, endpointId, streamUsage, minWidth, minHeight,
                                                               minFrameRate, minBitRate);
 
     if (error != CHIP_NO_ERROR)
@@ -106,6 +100,7 @@ CHIP_ERROR DeviceManager::AllocateVideoStream(NodeId nodeId, uint8_t streamUsage
     else
     {
         mNodeId      = nodeId;
+        mEndpointId  = endpointId;
         mStreamUsage = streamUsage;
         mOfferType   = offerType;
     }
@@ -113,11 +108,11 @@ CHIP_ERROR DeviceManager::AllocateVideoStream(NodeId nodeId, uint8_t streamUsage
     return error;
 }
 
-CHIP_ERROR DeviceManager::DeallocateVideoStream(NodeId nodeId, uint16_t videoStreamId)
+CHIP_ERROR DeviceManager::DeallocateVideoStream(NodeId nodeId, EndpointId endpointId, uint16_t videoStreamId)
 {
     ChipLogProgress(Camera, "Deallocate a video stream on the camera device.");
 
-    CHIP_ERROR error = mAVStreamManagment.DeallocateVideoStream(nodeId, kCameraEndpointId, videoStreamId);
+    CHIP_ERROR error = mAVStreamManagment.DeallocateVideoStream(nodeId, endpointId, videoStreamId);
 
     if (error != CHIP_NO_ERROR)
     {
@@ -190,7 +185,7 @@ void DeviceManager::InitiateWebRTCSession(uint16_t videoStreamId)
     ChipLogProgress(Camera, "DeviceManager: Initiating WebRTC session for node=0x" ChipLogFormatX64, ChipLogValueX64(mNodeId));
 
     // Connect to the WebRTC transport provider on the device
-    CHIP_ERROR err = WebRTCManager::Instance().Connect(*mCommissioner, mNodeId, kCameraEndpointId);
+    CHIP_ERROR err = WebRTCManager::Instance().Connect(*mCommissioner, mNodeId, mEndpointId);
     if (err != CHIP_NO_ERROR)
     {
         ChipLogError(Camera, "Failed to connect WebRTC manager. Error: %" CHIP_ERROR_FORMAT, err.Format());

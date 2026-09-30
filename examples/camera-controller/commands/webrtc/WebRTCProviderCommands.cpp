@@ -128,7 +128,7 @@ CHIP_ERROR EstablishSessionCommand::RunCommand()
         offerType = static_cast<camera::WebRTCOfferType>(mOfferType.Value());
     }
 
-    return camera::DeviceManager::Instance().AllocateVideoStream(mPeerNodeId, streamUsage, offerType);
+    return camera::DeviceManager::Instance().AllocateVideoStream(mPeerNodeId, 1, streamUsage, offerType);
 }
 
 } // namespace webrtc

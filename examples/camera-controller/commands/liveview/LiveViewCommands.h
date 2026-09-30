@@ -26,6 +26,7 @@ public:
     LiveViewStartCommand(CredentialIssuerCommands * credIssuerCommands) : CHIPCommand("start", credIssuerCommands)
     {
         AddArgument("node-id", 0, UINT64_MAX, &mPeerNodeId);
+        AddArgument("endpoint-id", 0, UINT16_MAX, &mEndpointId);
         AddArgument("stream-usage", 0, UINT8_MAX, &mStreamUsage);
         AddArgument("min-res-width", 0, UINT16_MAX, &mMinResWidth);
         AddArgument("min-res-height", 0, UINT16_MAX, &mMinResHeight);
@@ -39,7 +40,8 @@ public:
     chip::System::Clock::Timeout GetWaitDuration() const override { return chip::System::Clock::Seconds16(1); }
 
 private:
-    chip::NodeId mPeerNodeId = chip::kUndefinedNodeId;
+    chip::NodeId mPeerNodeId     = chip::kUndefinedNodeId;
+    chip::EndpointId mEndpointId = chip::kInvalidEndpointId;
     chip::Optional<uint8_t> mStreamUsage;
     chip::Optional<uint16_t> mMinResWidth;
     chip::Optional<uint16_t> mMinResHeight;
@@ -53,6 +55,7 @@ public:
     LiveViewStopCommand(CredentialIssuerCommands * credIssuerCommands) : CHIPCommand("stop", credIssuerCommands)
     {
         AddArgument("node-id", 0, UINT64_MAX, &mPeerNodeId);
+        AddArgument("endpoint-id", 0, UINT16_MAX, &mEndpointId);
         AddArgument("video-stream-id", 0, UINT16_MAX, &mVideoStreamID);
     }
 
@@ -62,6 +65,7 @@ public:
     chip::System::Clock::Timeout GetWaitDuration() const override { return chip::System::Clock::Seconds16(1); }
 
 private:
-    chip::NodeId mPeerNodeId = chip::kUndefinedNodeId;
-    uint16_t mVideoStreamID  = 0;
+    chip::NodeId mPeerNodeId     = chip::kUndefinedNodeId;
+    chip::EndpointId mEndpointId = chip::kInvalidEndpointId;
+    uint16_t mVideoStreamID      = 0;
 };

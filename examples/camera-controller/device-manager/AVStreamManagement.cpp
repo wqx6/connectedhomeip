@@ -23,14 +23,12 @@ using namespace ::chip;
 
 namespace {
 
-constexpr uint16_t kMinFrameRate     = 30;
-constexpr uint16_t kMaxFrameRate     = 120;
-constexpr uint32_t kDefaultBitRate   = 10000; // bits per second
 constexpr uint16_t kKeyFrameInterval = 4000;
-constexpr uint16_t kMinWidth         = 640;
-constexpr uint16_t kMinHeight        = 480;
-constexpr uint16_t kMaxWidth         = 1920;
-constexpr uint16_t kMaxHeight        = 1080;
+constexpr uint16_t kDefaultWidth = 1280;
+constexpr uint16_t kDefaultHeight = 720;
+constexpr uint16_t kDefaultFrameRate = 30;
+constexpr uint32_t kDefaultBitRate = 2000000;
+constexpr uint32_t kSmallVideoBitRate = 320000;
 
 } // namespace
 
@@ -51,8 +49,16 @@ CHIP_ERROR AVStreamManagement::AllocateVideoStream(NodeId nodeId, EndpointId end
 {
     VerifyOrReturnError(mCommissioner != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    ChipLogProgress(Camera, "Sending VideoStreamAllocate to (node=0x" ChipLogFormatX64 ", ep=%u, usage=%u)",
-                    ChipLogValueX64(nodeId), endpointId, streamUsage);
+    const uint16_t width = minResWidth.ValueOr(kDefaultWidth);
+    const uint16_t height = minResHeight.ValueOr(kDefaultHeight);
+    const uint16_t frameRate = minFrameRate.ValueOr(kDefaultFrameRate);
+    const uint32_t bitRate = minBitRate.ValueOr(
+        width <= 320 && height <= 240 ? kSmallVideoBitRate : kDefaultBitRate);
+    VerifyOrReturnError(width > 0 && height > 0 && frameRate > 0 && bitRate > 0, CHIP_ERROR_INVALID_ARGUMENT);
+
+    ChipLogProgress(Camera, "Sending VideoStreamAllocate to (node=0x" ChipLogFormatX64
+                            ", ep=%u, usage=%u, %ux%u@%u, bitrate=%u)",
+                    ChipLogValueX64(nodeId), endpointId, streamUsage, width, height, frameRate, bitRate);
 
     // Clear any stale data from previous requests.
     mVideoStreamAllocate = {};
@@ -61,59 +67,14 @@ CHIP_ERROR AVStreamManagement::AllocateVideoStream(NodeId nodeId, EndpointId end
     mVideoStreamAllocate.videoCodec =
         app::Clusters::CameraAvStreamManagement::VideoCodecEnum::kH264; // Default to H.264; adjust as needed.
 
-    // Handle frame rate configuration with validation
-    uint16_t requestedMinFrameRate = minFrameRate.ValueOr(kMinFrameRate);
-    if (requestedMinFrameRate > kMaxFrameRate)
-    {
-        ChipLogProgress(Camera, "Requested min frame rate (%u) exceeds max frame rate (%u), clamping to max", requestedMinFrameRate,
-                        kMaxFrameRate);
-        requestedMinFrameRate = kMaxFrameRate;
-    }
-
-    mVideoStreamAllocate.minFrameRate = requestedMinFrameRate;
-    mVideoStreamAllocate.maxFrameRate = kMaxFrameRate;
-
-    // Handle resolution configuration with validation
-    uint16_t requestedMinWidth  = minResWidth.ValueOr(kMinWidth);
-    uint16_t requestedMinHeight = minResHeight.ValueOr(kMinHeight);
-
-    // Ensure min values don't exceed max values
-    if (requestedMinWidth > kMaxWidth)
-    {
-        ChipLogProgress(Camera, "Requested min width (%u) exceeds max width (%u), clamping to max", requestedMinWidth, kMaxWidth);
-        requestedMinWidth = kMaxWidth;
-    }
-
-    if (requestedMinHeight > kMaxHeight)
-    {
-        ChipLogProgress(Camera, "Requested min height (%u) exceeds max height (%u), clamping to max", requestedMinHeight,
-                        kMaxHeight);
-        requestedMinHeight = kMaxHeight;
-    }
-
-    mVideoStreamAllocate.minResolution = { .width = requestedMinWidth, .height = requestedMinHeight };
-    mVideoStreamAllocate.maxResolution = { .width = kMaxWidth, .height = kMaxHeight };
-
-    // Handle bit rate configuration with validation
-    uint32_t requestedMinBitRate = minBitRate.ValueOr(kDefaultBitRate);
-    if (requestedMinBitRate > kDefaultBitRate)
-    {
-        // If requested min bit rate is higher than default, use it as both min and max
-        mVideoStreamAllocate.minBitRate = requestedMinBitRate;
-        mVideoStreamAllocate.maxBitRate = requestedMinBitRate;
-        ChipLogProgress(Camera, "Using custom bit rate: %u (both min and max)", requestedMinBitRate);
-    }
-    else
-    {
-        // Use requested min bit rate and default max bit rate
-        mVideoStreamAllocate.minBitRate = requestedMinBitRate;
-        mVideoStreamAllocate.maxBitRate = kDefaultBitRate;
-    }
+    mVideoStreamAllocate.minFrameRate  = frameRate;
+    mVideoStreamAllocate.maxFrameRate  = frameRate;
+    mVideoStreamAllocate.minResolution = { .width = width, .height = height };
+    mVideoStreamAllocate.maxResolution = { .width = width, .height = height };
+    mVideoStreamAllocate.minBitRate    = bitRate;
+    mVideoStreamAllocate.maxBitRate    = bitRate;
 
     mVideoStreamAllocate.keyFrameInterval = kKeyFrameInterval;
-
-    mVideoStreamAllocate.watermarkEnabled.SetValue(false);
-    mVideoStreamAllocate.OSDEnabled.SetValue(false);
 
     mEndpointId  = endpointId;
     mCommandType = CommandType::kVideoStreamAllocate;

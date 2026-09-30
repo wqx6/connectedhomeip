@@ -19,6 +19,8 @@
 #pragma once
 
 #include <app-common/zap-generated/cluster-objects.h>
+#include <atomic>
+#include <cstdint>
 #include <data-model-providers/codegen/CodegenDataModelProvider.h>
 #include <functional>
 #include <platform/CHIPDeviceLayer.h>
@@ -122,6 +124,8 @@ private:
     std::shared_ptr<rtc::Track> mTrack;
     std::shared_ptr<rtc::Track> mAudioTrack;
     std::shared_ptr<rtc::DataChannel> mDataChannel;
+    std::atomic<uint64_t> mVideoRtpPackets{ 0 };
+    std::atomic<uint64_t> mVideoRtpForwardedPackets{ 0 };
 
     // Callback to notify when session is established
     SessionEstablishedCallback mSessionEstablishedCallback;

@@ -188,14 +188,32 @@ pairing onnetwork 1 20202021
 
 Wait for the command to complete and confirm that commissioning was successful.
 
-3. To start a live video stream from your camera, use the `liveview start`
-   command followed by the nodeID you set during pairing. For example, if your
-   nodeID is 1, you can request a stream with a minimum resolution of 640x480
-   pixels and a minimum frame rate of 30 frames per second using the command
-   below.
+3. To start a live video stream from your camera, use `liveview start` followed
+   by the node ID you set during pairing and the camera endpoint ID. For
+   example, if the Tab5 node ID is 1234 and its camera endpoint ID is 1,
+   request its 1280x720 stream at 30 frames per second using:
 
 ```
-liveview start 1 --min-res-width 640 --min-res-height 480 --min-framerate 30
+liveview start 1234 1
+```
+
+Without video options, the controller requests H.264 at 1280x720, 30 fps, and
+2 Mbps for the Tab5. For a camera that supports 320x240 at 15 fps, request:
+
+```
+liveview start 1234 1 --min-res-width 320 --min-res-height 240 --min-framerate 15
+```
+
+Use `--min-framerate 10` if that camera only supports 10 fps. The controller
+requests the specified size and frame rate exactly. For 320x240 it defaults to
+320 kbps; use `--min-bitrate` to request another exact bitrate. The Tab5
+firmware currently supports only 1280x720 at 30 fps.
+
+To stop the stream, use the same node and endpoint IDs with the video stream ID
+reported by the allocation response:
+
+```
+liveview stop 1234 1 <video-stream-id>
 ```
 
 To see what video formats and resolutions your camera supports, first list the

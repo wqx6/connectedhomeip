@@ -37,8 +37,9 @@ CHIP_ERROR LiveViewStartCommand::RunCommand()
     // Use provided stream usage or default to 3 (LiveView)
     uint8_t streamUsage = mStreamUsage.HasValue() ? mStreamUsage.Value() : 3;
 
-    return camera::DeviceManager::Instance().AllocateVideoStream(mPeerNodeId, streamUsage, camera::WebRTCOfferType::kProvideOffer,
-                                                                 mMinResWidth, mMinResHeight, mMinFrameRate, mMinBitRate);
+    return camera::DeviceManager::Instance().AllocateVideoStream(mPeerNodeId, mEndpointId, streamUsage,
+                                                                 camera::WebRTCOfferType::kProvideOffer, mMinResWidth,
+                                                                 mMinResHeight, mMinFrameRate, mMinBitRate);
 }
 
 CHIP_ERROR LiveViewStopCommand::RunCommand()
@@ -47,5 +48,5 @@ CHIP_ERROR LiveViewStopCommand::RunCommand()
 
     camera::DeviceManager::Instance().StopVideoStream(mVideoStreamID);
 
-    return camera::DeviceManager::Instance().DeallocateVideoStream(mPeerNodeId, mVideoStreamID);
+    return camera::DeviceManager::Instance().DeallocateVideoStream(mPeerNodeId, mEndpointId, mVideoStreamID);
 }

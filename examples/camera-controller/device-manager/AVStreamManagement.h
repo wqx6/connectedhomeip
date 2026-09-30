@@ -51,10 +51,10 @@ public:
      * @param nodeId       The node ID of the remote camera device.
      * @param endpointId   The endpoint on which to send VideoStreamAllocate commands.
      * @param streamUsage  The usage of the stream(Recording, LiveView, etc) that this allocation is for.
-     * @param minResWidth  Optional minimum width for the video stream. If not specified, uses default value.
-     * @param minResHeight Optional minimum height for the video stream. If not specified, uses default value.
-     * @param minFrameRate Optional minimum frame rate for the video stream. If not specified, uses default value.
-     * @param minBitRate   Optional minimum bit rate for the video stream. If not specified, uses default value.
+     * @param minResWidth  Optional requested width. If not specified, uses 1280.
+     * @param minResHeight Optional requested height. If not specified, uses 720.
+     * @param minFrameRate Optional requested frame rate. If not specified, uses 30.
+     * @param minBitRate   Optional requested bit rate. If not specified, uses a size-based default.
      * @return CHIP_ERROR  CHIP_NO_ERROR on success, or an appropriate error code on failure.
      */
     CHIP_ERROR AllocateVideoStream(chip::NodeId nodeId, chip::EndpointId endpointId, uint8_t streamUsage,

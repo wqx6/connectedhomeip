@@ -29,6 +29,7 @@
 #include <memory>
 #include <netinet/in.h>
 #include <string>
+#include <string_view>
 #include <sys/socket.h>
 
 using namespace chip;
@@ -48,6 +49,40 @@ constexpr uint16_t kVideoStreamGstDestPort = 5000;
 constexpr int kAudioBitRate                = 64000;
 constexpr int kOpusPayloadType             = 111;
 constexpr uint16_t kAudioStreamGstDestPort = 5001;
+
+void LogAnswerMedia(const std::string & sdp)
+{
+    size_t offset = 0;
+    unsigned mediaIndex = 0;
+    while (offset < sdp.size())
+    {
+        const size_t end = sdp.find('\n', offset);
+        std::string_view line(sdp.data() + offset, (end == std::string::npos ? sdp.size() : end) - offset);
+        if (!line.empty() && line.back() == '\r')
+        {
+            line.remove_suffix(1);
+        }
+        if (line.compare(0, 2, "m=") == 0)
+        {
+            ChipLogProgress(Camera, "Answer media[%u]: %.*s", mediaIndex++, static_cast<int>(line.size()), line.data());
+        }
+        else if (mediaIndex > 0 && line.compare(0, 6, "a=mid:") == 0)
+        {
+            ChipLogProgress(Camera, "Answer media[%u] MID: %.*s", mediaIndex - 1, static_cast<int>(line.size() - 6),
+                            line.data() + 6);
+        }
+        else if (mediaIndex > 0 && line.compare(0, 7, "a=ssrc:") == 0)
+        {
+            const std::string_view ssrc = line.substr(7, line.find(' ', 7) - 7);
+            ChipLogProgress(Camera, "Answer media[%u] SSRC: %.*s", mediaIndex - 1, static_cast<int>(ssrc.size()), ssrc.data());
+        }
+        if (end == std::string::npos)
+        {
+            break;
+        }
+        offset = end + 1;
+    }
+}
 
 const char * GetPeerConnectionStateStr(rtc::PeerConnection::State state)
 {
@@ -160,6 +195,8 @@ CHIP_ERROR WebRTCManager::HandleAnswer(const WebRTCSessionStruct & session, cons
 {
     ChipLogProgress(Camera, "WebRTCManager::HandleAnswer");
 
+    LogAnswerMedia(sdp);
+
     mWebRTCProviderClient.HandleAnswerReceived(session.id);
 
     if (!mPeerConnection)
@@ -262,6 +299,8 @@ void WebRTCManager::Disconnect()
     mCurrentVideoStreamId = 0;
     mPendingSdpContext.Reset();
     mLocalCandidates.clear();
+    mVideoRtpPackets          = 0;
+    mVideoRtpForwardedPackets = 0;
 }
 
 CHIP_ERROR WebRTCManager::Connect(Controller::DeviceCommissioner & commissioner, NodeId nodeId, EndpointId endpointId)
@@ -337,15 +376,30 @@ CHIP_ERROR WebRTCManager::Connect(Controller::DeviceCommissioner & commissioner,
     media.addH264Codec(kVideoH264PayloadType);
     media.setBitrate(kVideoBitRate);
     mTrack = mPeerConnection->addTrack(media);
+    ChipLogProgress(Camera, "Controller video track MID: %s", mTrack->mid().c_str());
 
     auto session = std::make_shared<rtc::RtcpReceivingSession>();
     mTrack->setMediaHandler(session);
 
     mTrack->onMessage(
         [this, addr](rtc::binary message) {
-            // This is an RTP packet
-            sendto(mRTPSocket, reinterpret_cast<const char *>(message.data()), size_t(message.size()), 0,
-                   reinterpret_cast<const struct sockaddr *>(&addr), sizeof(addr));
+            const uint64_t received = ++mVideoRtpPackets;
+            const ssize_t sent = sendto(mRTPSocket, reinterpret_cast<const char *>(message.data()), size_t(message.size()), 0,
+                                        reinterpret_cast<const struct sockaddr *>(&addr), sizeof(addr));
+            if (sent == static_cast<ssize_t>(message.size()))
+            {
+                ++mVideoRtpForwardedPackets;
+            }
+            if (received == 1 || received % 300 == 0)
+            {
+                ChipLogProgress(Camera, "Video RTP callback: received=%llu forwarded=%llu, latest sendto=%zd",
+                                static_cast<unsigned long long>(received),
+                                static_cast<unsigned long long>(mVideoRtpForwardedPackets.load()), sent);
+            }
+            if (sent < 0 && (received == 1 || received % 300 == 0))
+            {
+                ChipLogError(Camera, "Video RTP sendto failed: %s", strerror(errno));
+            }
         },
         nullptr);
 
